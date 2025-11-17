@@ -86,6 +86,19 @@ def create_hero_slide():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/hero-slides/<int:slide_id>', methods=['GET'])
+def get_hero_slide(slide_id):
+    try:
+        response = supabase.table('hero_slides')\
+            .select('*')\
+            .eq('id', slide_id)\
+            .execute()
+        if response.data and len(response.data) > 0:
+            return jsonify(response.data[0])
+        return jsonify({'error': 'Slide not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/hero-slides/<int:slide_id>', methods=['PUT'])
 def update_hero_slide(slide_id):
     try:
@@ -143,6 +156,31 @@ def create_gallery_slide():
         data = request.json
         response = supabase.table('gallery_slides').insert(data).execute()
         return jsonify(response.data[0]), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/gallery-slides/<int:slide_id>', methods=['GET'])
+def get_gallery_slide(slide_id):
+    try:
+        response = supabase.table('gallery_slides')\
+            .select('*')\
+            .eq('id', slide_id)\
+            .execute()
+        if response.data and len(response.data) > 0:
+            return jsonify(response.data[0])
+        return jsonify({'error': 'Slide not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/gallery-slides/<int:slide_id>', methods=['PUT'])
+def update_gallery_slide(slide_id):
+    try:
+        data = request.json
+        response = supabase.table('gallery_slides')\
+            .update(data)\
+            .eq('id', slide_id)\
+            .execute()
+        return jsonify(response.data[0])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -349,12 +387,16 @@ def chatbot():
                         'success': False
                     })
                 
+                # Get DOB if provided
+                dob = booking_data.get('dob', '').strip()
+                
                 # Save to database
                 booking_entry = {
                     'name': name,
                     'phone': phone,
                     'service': service,
                     'message': message,
+                    'dob': dob if dob else None,
                     'source': 'chatbot',
                     'status': 'pending',
                     'created_at': datetime.now().isoformat()

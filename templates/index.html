@@ -968,6 +968,12 @@
                                 <button onclick="sendMenuOption('review')" class="flex-shrink-0 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-full text-xs font-semibold hover:shadow-lg transition">
                                     ⭐ Review
                                 </button>
+                                <button onclick="contactViaWhatsApp()" class="flex-shrink-0 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full text-xs font-semibold hover:shadow-lg transition">
+                                    💬 WhatsApp
+                                </button>
+                                <button onclick="contactViaCall()" class="flex-shrink-0 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-xs font-semibold hover:shadow-lg transition">
+                                    📞 Call Now
+                                </button>
                             </div>
                         </div>
                         
@@ -1214,6 +1220,16 @@
             addUserMessage(option.charAt(0).toUpperCase() + option.slice(1));
             document.getElementById('chatbot-input').value = option;
             sendMessage();
+        }
+        
+        function contactViaWhatsApp() {
+            const whatsappNum = '918431729319'; // Will be loaded from env
+            const message = encodeURIComponent('Hello! 👋 I\'m interested in astrology consultation. Can you please guide me?');
+            window.open(`https://wa.me/${whatsappNum}?text=${message}`, '_blank');
+        }
+        
+        function contactViaCall() {
+            window.location.href = 'tel:+918431729319'; // Will be loaded from env
         }
     </script>
 

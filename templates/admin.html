@@ -623,6 +623,8 @@
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('admin-dashboard').classList.remove('hidden');
                     loadDashboardData();
+                    initializeBusinessForm();
+                    initializeChatbotForm();
                 } else {
                     document.getElementById('login-error').classList.remove('hidden');
                 }
@@ -976,42 +978,62 @@
             }
         }
 
-        let businessEditMode = false;
-        async function toggleBusinessEdit() {
-            businessEditMode = !businessEditMode;
-            const inputs = document.querySelectorAll('#business-form input, #business-form textarea');
-            const btn = document.querySelector('#business-form button[type="submit"]');
-            
-            if (businessEditMode) {
-                inputs.forEach(input => input.removeAttribute('readonly'));
-                btn.textContent = 'Save Changes';
-                btn.classList.remove('btn-secondary');
-                btn.classList.add('btn-primary');
-            } else {
-                inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
-                btn.textContent = 'Edit Business Info';
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-secondary');
-            }
+        // Business edit mode toggle
+        document.getElementById('edit-business-btn').addEventListener('click', function() {
+            const inputs = document.querySelectorAll('#business-info-form input, #business-info-form textarea');
+            inputs.forEach(input => input.removeAttribute('readonly'));
+            document.getElementById('edit-business-btn').classList.add('hidden');
+            document.getElementById('save-business-btn').classList.remove('hidden');
+            document.getElementById('cancel-business-btn').classList.remove('hidden');
+        });
+        
+        document.getElementById('cancel-business-btn').addEventListener('click', function() {
+            const inputs = document.querySelectorAll('#business-info-form input, #business-info-form textarea');
+            inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
+            document.getElementById('edit-business-btn').classList.remove('hidden');
+            document.getElementById('save-business-btn').classList.add('hidden');
+            document.getElementById('cancel-business-btn').classList.add('hidden');
+            loadBusinessInfo(); // Reload original data
+        });
+        
+        // Initialize business form as readonly
+        function initializeBusinessForm() {
+            const inputs = document.querySelectorAll('#business-info-form input, #business-info-form textarea');
+            inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
         }
-
-        let chatbotEditMode = false;
-        async function toggleChatbotEdit() {
-            chatbotEditMode = !chatbotEditMode;
-            const inputs = document.querySelectorAll('#chatbot-form input, #chatbot-form textarea');
-            const btn = document.querySelector('#chatbot-form button[type="submit"]');
+        
+        // Chatbot config edit mode toggle
+        function toggleChatbotEdit() {
+            const inputs = document.querySelectorAll('#chatbot-config-form input, #chatbot-config-form textarea');
+            const editBtn = document.getElementById('edit-chatbot-btn');
+            const actionsDiv = document.getElementById('chatbot-form-actions');
             
-            if (chatbotEditMode) {
-                inputs.forEach(input => input.removeAttribute('readonly'));
-                btn.textContent = 'Save Configuration';
-                btn.classList.remove('btn-secondary');
-                btn.classList.add('btn-primary');
-            } else {
-                inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
-                btn.textContent = 'Edit Chatbot Config';
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-secondary');
-            }
+            inputs.forEach(input => input.removeAttribute('readonly'));
+            editBtn.style.display = 'none';
+            actionsDiv.style.display = 'flex';
+        }
+        
+        function cancelChatbotEdit() {
+            const inputs = document.querySelectorAll('#chatbot-config-form input, #chatbot-config-form textarea');
+            const editBtn = document.getElementById('edit-chatbot-btn');
+            const actionsDiv = document.getElementById('chatbot-form-actions');
+            
+            inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
+            editBtn.style.display = 'inline-block';
+            actionsDiv.style.display = 'none';
+            // Reload original data
+            loadChatbotConfig();
+        }
+        
+        // Initialize chatbot form as readonly
+        function initializeChatbotForm() {
+            const inputs = document.querySelectorAll('#chatbot-config-form input, #chatbot-config-form textarea');
+            inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
+        }
+        
+        // Load chatbot config (placeholder)
+        async function loadChatbotConfig() {
+            // TODO: Load from API if needed
         }
 
         async function deleteGallerySlide(id) {
