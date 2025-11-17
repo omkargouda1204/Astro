@@ -870,6 +870,150 @@
             }
         }
 
+        async function editGallerySlide(id) {
+            try {
+                const response = await fetch(`/api/gallery-slides/${id}`);
+                const slide = await response.json();
+                
+                // Populate form fields
+                document.getElementById('gallery-image-url').value = slide.image || '';
+                document.getElementById('gallery-title').value = slide.title || '';
+                document.getElementById('gallery-description').value = slide.description || '';
+                
+                // Change button to update mode
+                const submitBtn = document.querySelector('#gallery-form button[type="submit"]');
+                submitBtn.textContent = 'Update Image';
+                submitBtn.onclick = async (e) => {
+                    e.preventDefault();
+                    await updateGallerySlide(id);
+                };
+            } catch (error) {
+                console.error('Error loading gallery slide:', error);
+                alert('Error loading image data');
+            }
+        }
+
+        async function updateGallerySlide(id) {
+            const data = {
+                image: document.getElementById('gallery-image-url').value,
+                title: document.getElementById('gallery-title').value,
+                description: document.getElementById('gallery-description').value
+            };
+
+            try {
+                await fetch(`/api/gallery-slides/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                // Reset form
+                document.getElementById('gallery-form').reset();
+                const submitBtn = document.querySelector('#gallery-form button[type="submit"]');
+                submitBtn.textContent = 'Add Image';
+                submitBtn.onclick = null;
+                
+                loadGallerySlides();
+                alert('Image updated successfully!');
+            } catch (error) {
+                console.error('Error updating gallery slide:', error);
+                alert('Error updating image');
+            }
+        }
+
+        async function editHeroSlide(id) {
+            try {
+                const response = await fetch(`/api/hero-slides/${id}`);
+                const slide = await response.json();
+                
+                // Populate form fields
+                document.getElementById('hero-image-url').value = slide.image || '';
+                document.getElementById('hero-title').value = slide.title || '';
+                document.getElementById('hero-subtitle').value = slide.subtitle || '';
+                document.getElementById('hero-button-text').value = slide.button_text || '';
+                document.getElementById('hero-button-link').value = slide.button_link || '';
+                
+                // Change button to update mode
+                const submitBtn = document.querySelector('#hero-form button[type="submit"]');
+                submitBtn.textContent = 'Update Slide';
+                submitBtn.onclick = async (e) => {
+                    e.preventDefault();
+                    await updateHeroSlide(id);
+                };
+            } catch (error) {
+                console.error('Error loading hero slide:', error);
+                alert('Error loading slide data');
+            }
+        }
+
+        async function updateHeroSlide(id) {
+            const data = {
+                image: document.getElementById('hero-image-url').value,
+                title: document.getElementById('hero-title').value,
+                subtitle: document.getElementById('hero-subtitle').value,
+                button_text: document.getElementById('hero-button-text').value,
+                button_link: document.getElementById('hero-button-link').value
+            };
+
+            try {
+                await fetch(`/api/hero-slides/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                // Reset form
+                document.getElementById('hero-form').reset();
+                const submitBtn = document.querySelector('#hero-form button[type="submit"]');
+                submitBtn.textContent = 'Add Slide';
+                submitBtn.onclick = null;
+                
+                loadHeroSlides();
+                alert('Slide updated successfully!');
+            } catch (error) {
+                console.error('Error updating hero slide:', error);
+                alert('Error updating slide');
+            }
+        }
+
+        let businessEditMode = false;
+        async function toggleBusinessEdit() {
+            businessEditMode = !businessEditMode;
+            const inputs = document.querySelectorAll('#business-form input, #business-form textarea');
+            const btn = document.querySelector('#business-form button[type="submit"]');
+            
+            if (businessEditMode) {
+                inputs.forEach(input => input.removeAttribute('readonly'));
+                btn.textContent = 'Save Changes';
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-primary');
+            } else {
+                inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
+                btn.textContent = 'Edit Business Info';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            }
+        }
+
+        let chatbotEditMode = false;
+        async function toggleChatbotEdit() {
+            chatbotEditMode = !chatbotEditMode;
+            const inputs = document.querySelectorAll('#chatbot-form input, #chatbot-form textarea');
+            const btn = document.querySelector('#chatbot-form button[type="submit"]');
+            
+            if (chatbotEditMode) {
+                inputs.forEach(input => input.removeAttribute('readonly'));
+                btn.textContent = 'Save Configuration';
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-primary');
+            } else {
+                inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
+                btn.textContent = 'Edit Chatbot Config';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            }
+        }
+
         async function deleteGallerySlide(id) {
             if (!confirm('Delete this gallery image?')) return;
             try {

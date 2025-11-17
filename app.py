@@ -258,6 +258,10 @@ def create_contact_message():
     try:
         data = request.json
         response = supabase.table('contact_messages').insert(data).execute()
+        
+        # Send email notification
+        send_contact_email(data)
+        
         return jsonify(response.data[0]), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -462,17 +466,43 @@ Stay connected for daily horoscopes, tips, and updates:<br><br>
 {f'🎥 <a href="{youtube}" target="_blank" style="color: #FF0000; font-weight: bold;">YouTube</a><br>' if youtube else ''}
 <br><em>💫 Join our community of 10,000+ followers!</em>'''
             },
+            'chat': {
+                'keywords': ['chat', 'talk', 'conversation', 'speak', 'discuss'],
+                'response': '''💬 <strong>Let's Chat!</strong><br><br>
+I'm here to answer any questions about astrology and our services.<br><br>
+<strong>You can ask me about:</strong><br>
+• What services we offer<br>
+• Our pricing and packages<br>
+• How astrology works<br>
+• Birth chart readings<br>
+• Compatibility analysis<br>
+• Career or relationship guidance<br>
+• Or anything else! 😊<br><br>
+<em>Type your question and I'll do my best to help! ✨</em>'''
+            },
             'qa': {
-                'keywords': ['what is astrology', 'how does', 'why should', 'benefits', 'accurate', 'works', 'question', 'faq'],
-                'response': '''❓ <strong>Common Questions & Answers:</strong><br><br>
+                'keywords': ['what is astrology', 'how does', 'why should', 'benefits', 'accurate', 'works', 'question', 'faq', 'qa'],
+                'response': f'''❓ <strong>Frequently Asked Questions:</strong><br><br>
 <strong>Q: Is astrology accurate?</strong><br>
 A: Astrology provides guidance based on cosmic patterns. Accuracy depends on precise birth details and expert interpretation.<br><br>
 <strong>Q: What do I need for a reading?</strong><br>
-A: Birth date, time, and place are essential for accurate predictions.<br><br>
+A: Birth date, exact time, and place of birth are essential for accurate predictions.<br><br>
 <strong>Q: How long is a consultation?</strong><br>
-A: Sessions typically last 30-60 minutes depending on the service.<br><br>
+A: Sessions typically last 30-60 minutes depending on the service selected.<br><br>
 <strong>Q: Can astrology predict the future?</strong><br>
-A: Astrology reveals tendencies and possibilities, helping you make informed decisions.<br><br>
+A: Astrology reveals tendencies and possibilities, helping you make informed decisions rather than fixed predictions.<br><br>
+<strong>Q: Do you offer online consultations?</strong><br>
+A: Yes! We offer both in-person and online consultations via video call.<br><br>
+<strong>Q: What's the cost of a consultation?</strong><br>
+A: Prices vary by service type. <a href="https://wa.me/{whatsapp_clean}" target="_blank" style="color: #7C3AED;">Contact us</a> for detailed pricing.<br><br>
+<strong>Q: How do I book an appointment?</strong><br>
+A: You can book via WhatsApp, our website form, or by calling us directly.<br><br>
+<strong>Q: Is my information confidential?</strong><br>
+A: Absolutely! All consultations and personal information are strictly confidential.<br><br>
+<strong>Q: Can astrology help with career decisions?</strong><br>
+A: Yes! Career astrology can provide insights into your strengths, opportunities, and best timing for changes.<br><br>
+<strong>Q: What is Kundali/Birth Chart?</strong><br>
+A: A Kundali is a cosmic snapshot of planetary positions at your exact birth time, revealing your life patterns.<br><br>
 <em>Have more questions? Just ask me! 💬</em>'''
             },
             'help': {
@@ -609,6 +639,58 @@ def send_booking_email(booking_data):
         
     except Exception as e:
         print(f"Error sending booking email: {str(e)}")
+        return False
+
+def send_contact_email(contact_data):
+    """Send email notification for new contact message"""
+    try:
+        email_address = os.getenv('EMAIL_ADDRESS')
+        email_password = os.getenv('EMAIL_PASSWORD')
+        
+        if not email_address or not email_password:
+            print("Email credentials not configured")
+            return False
+        
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f"New Contact Message: {contact_data.get('subject', 'No Subject')}"
+        msg['From'] = email_address
+        msg['To'] = email_address
+        
+        html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; border: 2px solid #667eea;">
+                <h2 style="color: #667eea; text-align: center;">📧 New Contact Message</h2>
+                <div style="margin: 20px 0; padding: 20px; background: #f8f9ff; border-radius: 8px;">
+                    <p><strong>Name:</strong> {contact_data.get('name')}</p>
+                    <p><strong>Phone:</strong> {contact_data.get('phone')}</p>
+                    <p><strong>Email:</strong> {contact_data.get('email', 'N/A')}</p>
+                    <p><strong>Subject:</strong> {contact_data.get('subject', 'N/A')}</p>
+                    <p><strong>Message:</strong></p>
+                    <p style="background: white; padding: 15px; border-radius: 5px; white-space: pre-wrap;">{contact_data.get('message', 'N/A')}</p>
+                    <p><strong>Received:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+                </div>
+                <p style="color: #666; font-size: 12px; text-align: center; margin-top: 20px;">
+                    This message was submitted through your contact form
+                </p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        part = MIMEText(html, 'html')
+        msg.attach(part)
+        
+        with smtplib.SMTP(os.getenv('SMTP_SERVER', 'smtp.gmail.com'), int(os.getenv('SMTP_PORT', 587))) as server:
+            server.starttls()
+            server.login(email_address, email_password)
+            server.send_message(msg)
+        
+        print(f"Contact email sent successfully from {contact_data.get('name')}")
+        return True
+        
+    except Exception as e:
+        print(f"Error sending contact email: {str(e)}")
         return False
 
 if __name__ == '__main__':
