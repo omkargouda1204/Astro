@@ -154,9 +154,19 @@ def get_gallery_slides():
 def create_gallery_slide():
     try:
         data = request.json
+        print(f"Creating gallery slide with data: {data}")
+        
+        # Ensure required fields
+        if not data.get('image'):
+            return jsonify({'error': 'Image URL is required'}), 400
+        
         response = supabase.table('gallery_slides').insert(data).execute()
+        print(f"Gallery slide created: {response.data}")
         return jsonify(response.data[0]), 201
     except Exception as e:
+        print(f"Error creating gallery slide: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/gallery-slides/<int:slide_id>', methods=['GET'])
@@ -176,12 +186,19 @@ def get_gallery_slide(slide_id):
 def update_gallery_slide(slide_id):
     try:
         data = request.json
+        print(f"Updating gallery slide {slide_id} with data: {data}")
+        
         response = supabase.table('gallery_slides')\
             .update(data)\
             .eq('id', slide_id)\
             .execute()
+        
+        print(f"Gallery slide updated: {response.data}")
         return jsonify(response.data[0])
     except Exception as e:
+        print(f"Error updating gallery slide: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/gallery-slides/<int:slide_id>', methods=['DELETE'])
@@ -295,13 +312,20 @@ def get_contact_messages():
 def create_contact_message():
     try:
         data = request.json
+        print(f"Received contact message: {data}")
+        
         response = supabase.table('contact_messages').insert(data).execute()
+        print(f"Saved to database: {response.data}")
         
         # Send email notification
-        send_contact_email(data)
+        email_sent = send_contact_email(data)
+        print(f"Email sent: {email_sent}")
         
         return jsonify(response.data[0]), 201
     except Exception as e:
+        print(f"Error in create_contact_message: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 # Business Info
@@ -324,6 +348,32 @@ def update_business_info():
         data = request.json
         # Upsert (update or insert)
         response = supabase.table('business_info')\
+            .upsert({'id': 1, **data})\
+            .execute()
+        return jsonify(response.data[0])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Chatbot Config endpoints
+@app.route('/api/chatbot-config', methods=['GET'])
+def get_chatbot_config():
+    try:
+        response = supabase.table('chatbot_config')\
+            .select('*')\
+            .eq('id', 1)\
+            .execute()
+        if response.data:
+            return jsonify(response.data[0])
+        return jsonify({})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/chatbot-config', methods=['POST', 'PUT'])
+def update_chatbot_config():
+    try:
+        data = request.json
+        # Upsert (update or insert)
+        response = supabase.table('chatbot_config')\
             .upsert({'id': 1, **data})\
             .execute()
         return jsonify(response.data[0])
@@ -359,18 +409,36 @@ def chatbot():
         user_message = data.get('message', '').lower()
         booking_data = data.get('booking')  # For booking submissions
         
-        # Get business details
-        whatsapp = os.getenv('WHATSAPP_NUMBER', '+918431729319')
-        whatsapp_clean = whatsapp.replace('+', '').replace(' ', '')
-        address = os.getenv('BUSINESS_ADDRESS', '3rd Cross Rd, Austin Town, Neelasandra, Bengaluru, Karnataka 560047')
-        maps_url = os.getenv('GOOGLE_MAPS_URL', 'https://maps.google.com/?q=3rd+Cross+Rd+Austin+Town+Neelasandra+Bengaluru+560047')
-        review_url = os.getenv('GOOGLE_REVIEW_URL', 'https://maps.app.goo.gl/rPo3UXPy65DBbsVz8')
-        hours_weekday = os.getenv('HOURS_WEEKDAY', '9:00 AM - 8:00 PM')
-        hours_sunday = os.getenv('HOURS_SUNDAY', '9:00 AM - 2:00 PM')
-        facebook = os.getenv('FACEBOOK_URL', '')
-        instagram = os.getenv('INSTAGRAM_URL', '')
-        twitter = os.getenv('TWITTER_URL', '')
-        youtube = os.getenv('YOUTUBE_URL', '')
+        # Get business info from database (dynamically updated by admin)
+        try:
+            business_info_response = supabase.table('business_info').select('*').eq('id', 1).execute()
+            business_info = business_info_response.data[0] if business_info_response.data else {}
+        except:
+            business_info = {}
+        
+        # Get chatbot config from database
+        try:
+            chatbot_config_response = supabase.table('chatbot_config').select('*').eq('id', 1).execute()
+            chatbot_config = chatbot_config_response.data[0] if chatbot_config_response.data else {}
+        except:
+            chatbot_config = {}
+        
+        # Get business details (database first, fallback to env)
+        whatsapp = business_info.get('whatsapp') or business_info.get('phone') or os.getenv('WHATSAPP_NUMBER', '+918431729319')
+        whatsapp_clean = whatsapp.replace('+', '').replace(' ', '').replace('-', '')
+        address = business_info.get('address') or os.getenv('BUSINESS_ADDRESS', '3rd Cross Rd, Austin Town, Neelasandra, Bengaluru, Karnataka 560047')
+        email = business_info.get('email') or os.getenv('EMAIL_ADDRESS', 'info@astrology.com')
+        website = business_info.get('website') or os.getenv('WEBSITE_URL', '')
+        maps_url = chatbot_config.get('google_maps_url') or os.getenv('GOOGLE_MAPS_URL', 'https://maps.google.com/?q=3rd+Cross+Rd+Austin+Town+Neelasandra+Bengaluru+560047')
+        review_url = chatbot_config.get('google_review_url') or os.getenv('GOOGLE_REVIEW_URL', 'https://maps.app.goo.gl/rPo3UXPy65DBbsVz8')
+        hours_weekday = business_info.get('hours_weekday') or chatbot_config.get('hours_weekday') or os.getenv('HOURS_WEEKDAY', '9:00 AM - 8:00 PM')
+        hours_sunday = business_info.get('hours_sunday') or chatbot_config.get('hours_sunday') or os.getenv('HOURS_SUNDAY', '9:00 AM - 2:00 PM')
+        facebook = business_info.get('facebook') or chatbot_config.get('facebook') or os.getenv('FACEBOOK_URL', '')
+        instagram = business_info.get('instagram') or chatbot_config.get('instagram') or os.getenv('INSTAGRAM_URL', '')
+        twitter = business_info.get('twitter') or chatbot_config.get('twitter') or os.getenv('TWITTER_URL', '')
+        youtube = business_info.get('youtube') or chatbot_config.get('youtube') or os.getenv('YOUTUBE_URL', '')
+        linkedin = chatbot_config.get('linkedin') or os.getenv('LINKEDIN_URL', '')
+        services_list = chatbot_config.get('services') or 'Kundali Analysis, Tarot Reading, Career Guidance, Love & Relationships'
         
         # Handle booking submission
         if booking_data:
@@ -476,8 +544,9 @@ We offer comprehensive astrology consultations:<br><br>
                 'response': f'''📞 <strong>Get In Touch:</strong><br><br>
 <strong>📱 Phone:</strong> {whatsapp}<br>
 <strong>💬 WhatsApp:</strong> <a href="https://wa.me/{whatsapp_clean}" target="_blank" style="color: #7C3AED; font-weight: bold;">{whatsapp}</a><br>
-<strong>📧 Email:</strong> {os.getenv('EMAIL_ADDRESS', 'info@astrology.com')}<br><br>
-<strong>⏰ Best time to call:</strong> {hours_weekday}<br><br>
+<strong>📧 Email:</strong> {email}<br>
+{f'<strong>🌐 Website:</strong> <a href="{website}" target="_blank" style="color: #7C3AED;">{website}</a><br>' if website else ''}
+<br><strong>⏰ Best time to call:</strong> {hours_weekday}<br><br>
 <em>We respond fastest on WhatsApp! 💚</em>'''
             },
             'booking': {
@@ -499,13 +568,14 @@ Your experience matters to us. Share your thoughts and help others find their co
 <em>Your feedback helps us serve you better! 🙏✨</em>'''
             },
             'social': {
-                'keywords': ['social', 'facebook', 'instagram', 'twitter', 'youtube', 'follow', 'connect online'],
+                'keywords': ['social', 'facebook', 'instagram', 'twitter', 'youtube', 'linkedin', 'follow', 'connect online'],
                 'response': f'''📱 <strong>Follow Us on Social Media!</strong><br><br>
 Stay connected for daily horoscopes, tips, and updates:<br><br>
 {f'📘 <a href="{facebook}" target="_blank" style="color: #1877F2; font-weight: bold;">Facebook</a><br>' if facebook else ''}
 {f'📸 <a href="{instagram}" target="_blank" style="color: #E4405F; font-weight: bold;">Instagram</a><br>' if instagram else ''}
 {f'🐦 <a href="{twitter}" target="_blank" style="color: #1DA1F2; font-weight: bold;">Twitter</a><br>' if twitter else ''}
 {f'🎥 <a href="{youtube}" target="_blank" style="color: #FF0000; font-weight: bold;">YouTube</a><br>' if youtube else ''}
+{f'💼 <a href="{linkedin}" target="_blank" style="color: #0A66C2; font-weight: bold;">LinkedIn</a><br>' if linkedin else ''}
 <br><em>💫 Join our community of 10,000+ followers!</em>'''
             },
             'chat': {
@@ -523,29 +593,152 @@ I'm here to answer any questions about astrology and our services.<br><br>
 <em>Type your question and I'll do my best to help! ✨</em>'''
             },
             'qa': {
-                'keywords': ['what is astrology', 'how does', 'why should', 'benefits', 'accurate', 'works', 'question', 'faq', 'qa'],
-                'response': f'''❓ <strong>Frequently Asked Questions:</strong><br><br>
-<strong>Q: Is astrology accurate?</strong><br>
-A: Astrology provides guidance based on cosmic patterns. Accuracy depends on precise birth details and expert interpretation.<br><br>
+                'keywords': ['what is astrology', 'how does', 'why should', 'benefits', 'accurate', 'works', 'question', 'faq', 'qa', 'zodiac', 'horoscope', 'birth chart', 'rashi', 'nakshatra', 'dosha', 'mangal', 'kundali', 'dasha', 'moon sign', 'sun sign', 'saturn', 'jupiter', 'venus', 'mercury', 'rahu', 'ketu'],
+                'response': f'''❓ <strong>Frequently Asked Questions (English & ಕನ್ನಡ):</strong><br><br>
+
+<strong>📚 GENERAL QUESTIONS:</strong><br><br>
+
+<strong>Q: What is astrology? / ಜ್ಯೋತಿಷ್ಯ ಎಂದರೆ ಏನು?</strong><br>
+A: Astrology is the study of how planetary positions influence human personality and events. / ಗ್ರಹ–ನಕ್ಷತ್ರಗಳ ಸ್ಥಾನವು ಜೀವನದ ಮೇಲೆ ಹೇಗೆ ಪರಿಣಾಮ ಬೀರುತ್ತದೆ ಎಂದು ಅಧ್ಯಯನ ಮಾಡುವ ವಿಜ್ಞಾನ.<br><br>
+
+<strong>Q: How do I know my zodiac sign? / ನನ್ನ ರಾಶಿ ಹೇಗೆ ಗೊತ್ತಾಗುತ್ತದೆ?</strong><br>
+A: Your zodiac sign is based on your date of birth. / ನಿಮ್ಮ ಜನ್ಮದಿನದ ಮೇಲೆ ಆಧಾರಿತವಾಗಿ ರಾಶಿ ನಿರ್ಧರಿಸಲಾಗುತ್ತದೆ.<br><br>
+
+<strong>Q: What are the 12 zodiac signs? / ರಾಶಿಚಕ್ರದಲ್ಲಿ ಎಷ್ಟು ರಾಶಿಗಳು ಇವೆ?</strong><br>
+A: Aries, Taurus, Gemini, Cancer, Leo, Virgo, Libra, Scorpio, Sagittarius, Capricorn, Aquarius, Pisces. / ಮೇಷ, ವೃಷಭ, ಮಿಥುನ, ಕಟಕ, ಸಿಂಹ, ಕನ್ಯಾ, ತುಲಾ, ವೃಶ್ಚಿಕ, ಧನು, ಮಕರ, ಕುಂಭ, ಮೀನ.<br><br>
+
+<strong>Q: What is a horoscope?</strong><br>
+A: A horoscope is a prediction based on the position of stars and planets for a specific time.<br><br>
+
+<strong>Q: Can astrology predict the future?</strong><br>
+A: Astrology can give guidance and possibilities, not exact predictions.<br><br>
+
+<strong>Q: What is a birth chart? / ಜಾತಕ ಎಂದರೆ ಏನು?</strong><br>
+A: A birth chart is a map of the sky at the exact moment you were born. / ಜನನ ಸಮಯದ ಗ್ರಹ–ನಕ್ಷತ್ರಗಳ ನಕ್ಷೆ.<br><br>
+
+<strong>Q: Why is the time of birth important? / ಜನನ ಸಮಯ ಏಕೆ ಮುಖ್ಯ?</strong><br>
+A: Birth time helps determine your ascendant (lagna) and exact planetary positions. / ಜನನ ಸಮಯದಿಂದ ಲಗ್ನ ಮತ್ತು ನಕ್ಷತ್ರ ಬದಲಾಗುತ್ತದೆ.<br><br>
+
+<strong>Q: What is a Lagna (Ascendant)? / ಲಗ್ನ ಎಂದರೆ ಏನು?</strong><br>
+A: It is the zodiac rising on the eastern horizon when you were born. / ನಿಮ್ಮ ಜನನ ಕ್ಷಣದಲ್ಲಿ ಪೂರ್ವ ದಿಕ್ಕಿನಲ್ಲಿ ಉದಯಿಸಿದ್ದ ರಾಶಿ.<br><br>
+
+<strong>Q: What is a Rashi?</strong><br>
+A: Rashi is your moon sign—based on where the Moon was during your birth.<br><br>
+
+<strong>Q: Which is more important, sun sign or moon sign?</strong><br>
+A: Moon sign shows your mind and emotions; sun sign shows basic personality.<br><br>
+
+<strong>📜 SPECIFIC TOPICS:</strong><br><br>
+
+<strong>Q: Can astrology tell about marriage? / ವಿವಾಹ ಬಗ್ಗೆ ತಿಳಿಯಬಹುದಾ?</strong><br>
+A: Yes, planetary positions like Venus, Jupiter, and 7th house indicate marriage life.<br><br>
+
+<strong>Q: Can astrology help with career choices?</strong><br>
+A: Yes, the 10th house and planets like Saturn, Jupiter, and Sun give career insights.<br><br>
+
+<strong>Q: What is a Nakshatra? / ನಕ್ಷತ್ರ ಎಂದರೇನು?</strong><br>
+A: Nakshatra is a lunar mansion—there are 27 nakshatras based on moon's position.<br><br>
+
+<strong>Q: What is a Dosha?</strong><br>
+A: Dosha means imbalance or planetary defect in the horoscope (e.g., Mangal Dosha).<br><br>
+
+<strong>Q: What is Mangal Dosha? / ಮಂಗಳ ದೋಷ ಎಂದರೆ ಏನು?</strong><br>
+A: When Mars is placed in certain houses, it may affect marriage compatibility. / ಮಂಗಳ ಗ್ರಹದ ವಿಶೇಷ ಸ್ಥಾನದಿಂದ ಉಂಟಾಗುವ ವಿವಾಹ ಸಂಬಂಧಿ ದೋಷ.<br><br>
+
+<strong>Q: Can astrology tell about health? / ಆರೋಗ್ಯ ತಿಳಿಯಬಹುದಾ?</strong><br>
+A: Yes, the 1st, 6th, and 8th houses give health-related indications. / ಹೌದು, 1, 6 ಮತ್ತು 8ನೇ ಭಾವಗಳು ಆರೋಗ್ಯ ಸೂಚಿಸುತ್ತವೆ.<br><br>
+
+<strong>Q: What is gemstone recommendation? / ರತ್ನ ಧಾರಣೆ ಏಕೆ?</strong><br>
+A: Certain gemstones are suggested to strengthen weak planets. / ದುರ್ಬಲ ಗ್ರಹವನ್ನು ಬಲಪಡಿಸಲು.<br><br>
+
+<strong>Q: What is a Dasha? / ದಶಾ ಎಂದರೆ ಏನು?</strong><br>
+A: Dasha is a planetary period that influences your life for a certain duration. / ಪ್ರತಿ ಗ್ರಹ ನೀಡುವ ಕಾಲಪರಿಣಾಮ.<br><br>
+
+<strong>Q: Does astrology match kundli for marriage? / ಕುಂಡಲಿ ಮ್ಯಾಚಿಂಗ್ ಮುಖ್ಯವಾ?</strong><br>
+A: Yes, kundli matching checks compatibility of partners based on planetary positions. / ಹೌದು, ವಿವಾಹ ಹೊಂದಾಣಿಕೆಗಾಗಿ ಅತ್ಯಂತ ಮುಖ್ಯ.<br><br>
+
+<strong>Q: Can astrology change my destiny?</strong><br>
+A: Astrology guides you; remedies can help reduce negative effects, but actions matter most.<br><br>
+
+<strong>🌟 PLANETS & HOUSES:</strong><br><br>
+
+<strong>Q: What is the Moon sign?</strong><br>
+A: It shows your emotions, mind, and inner nature.<br><br>
+
+<strong>Q: What is the Sun sign?</strong><br>
+A: It represents your core personality and ego.<br><br>
+
+<strong>Q: What are houses in astrology?</strong><br>
+A: The birth chart is divided into 12 houses representing life areas like health, career, marriage, etc.<br><br>
+
+<strong>Q: What is retrograde?</strong><br>
+A: When a planet appears to move backward, affecting its energy.<br><br>
+
+<strong>Q: Does Mercury retrograde cause problems?</strong><br>
+A: It can affect communication, travel, and decision-making.<br><br>
+
+<strong>Q: What is Rahu and Ketu?</strong><br>
+A: They are shadow planets that influence karma and past-life effects.<br><br>
+
+<strong>Q: What does Saturn represent?</strong><br>
+A: Discipline, hard work, patience, and karmic lessons.<br><br>
+
+<strong>Q: What is Shani Sade Sati?</strong><br>
+A: A 7.5-year period when Saturn moves around your moon sign.<br><br>
+
+<strong>Q: Which planet affects education?</strong><br>
+A: Mercury and Jupiter play key roles.<br><br>
+
+<strong>Q: Which planet is responsible for love? / ಪ್ರೀತಿಗೆ ಯಾವ ಗ್ರಹ?</strong><br>
+A: Venus represents love and attraction. / ಶುಕ್ರ ಗ್ರಹ – ಪ್ರೀತಿ, ಸೌಂದರ್ಯ, ವಿವಾಹ, ಐಶ್ವರ್ಯ.<br><br>
+
+<strong>Q: What is Jupiter's importance? / ಗುರುಗ್ರಹದ ಮಹತ್ವ ಏನು?</strong><br>
+A: Knowledge, fortune, marriage, and wealth. / ಜ್ಞಾನ, ಭಾಗ್ಯ, ವಿವಾಹ ಮತ್ತು ಹಣದ ಗ್ರಹ.<br><br>
+
+<strong>💼 PRACTICAL QUESTIONS:</strong><br><br>
+
+<strong>Q: Can astrology help with financial problems?</strong><br>
+A: Yes, planets like Jupiter and Mercury show financial strength.<br><br>
+
+<strong>Q: Can gemstones remove all doshas?</strong><br>
+A: Not all, but they reduce negative effects.<br><br>
+
+<strong>Q: What is vastu in astrology? / ವಾಸ್ತು ದೋಷ ಎಂದರೆ?</strong><br>
+A: A system that guides home direction and energy flow. / ಮನೆಯ ದಿಕ್ಕು ಹಾಗೂ ನಿರ್ಮಾಣದಿಂದ ಉಂಟಾಗುವ ನಕಾರಾತ್ಮಕ ಪರಿಣಾಮ.<br><br>
+
+<strong>Q: Can astrology tell about children?</strong><br>
+A: Yes, the 5th house and Jupiter indicate childbirth.<br><br>
+
+<strong>Q: How accurate is Kundli matching?</strong><br>
+A: Very accurate when done properly with all factors.<br><br>
+
+<strong>Q: What is KP astrology?</strong><br>
+A: A modern prediction system based on stellar positions.<br><br>
+
+<strong>Q: Is astrology 100% accurate? / ಜ್ಯೋತಿಷ್ಯ ಪಕ್ಕಾ ಸರಿ ಆಗುತ್ತದೆಯಾ?</strong><br>
+A: Not 100%, but provides guidance. / 100% ಅಲ್ಲ, ಆದರೆ ಮಾರ್ಗದರ್ಶನ ನೀಡುತ್ತದೆ.<br><br>
+
+<strong>📋 OUR SERVICES:</strong><br><br>
+
 <strong>Q: What do I need for a reading?</strong><br>
 A: Birth date, exact time, and place of birth are essential for accurate predictions.<br><br>
+
 <strong>Q: How long is a consultation?</strong><br>
 A: Sessions typically last 30-60 minutes depending on the service selected.<br><br>
-<strong>Q: Can astrology predict the future?</strong><br>
-A: Astrology reveals tendencies and possibilities, helping you make informed decisions rather than fixed predictions.<br><br>
+
 <strong>Q: Do you offer online consultations?</strong><br>
 A: Yes! We offer both in-person and online consultations via video call.<br><br>
+
 <strong>Q: What's the cost of a consultation?</strong><br>
 A: Prices vary by service type. <a href="https://wa.me/{whatsapp_clean}" target="_blank" style="color: #7C3AED;">Contact us</a> for detailed pricing.<br><br>
+
 <strong>Q: How do I book an appointment?</strong><br>
 A: You can book via WhatsApp, our website form, or by calling us directly.<br><br>
+
 <strong>Q: Is my information confidential?</strong><br>
 A: Absolutely! All consultations and personal information are strictly confidential.<br><br>
-<strong>Q: Can astrology help with career decisions?</strong><br>
-A: Yes! Career astrology can provide insights into your strengths, opportunities, and best timing for changes.<br><br>
-<strong>Q: What is Kundali/Birth Chart?</strong><br>
-A: A Kundali is a cosmic snapshot of planetary positions at your exact birth time, revealing your life patterns.<br><br>
-<em>Have more questions? Just ask me! 💬</em>'''
+
+<em>💬 Have more questions? Just ask me in English or ಕನ್ನಡ! ✨</em>'''
             },
             'help': {
                 'keywords': ['help', 'hi', 'hello', 'hey', 'start', 'menu', 'options'],
@@ -604,20 +797,29 @@ def upload_file():
             return jsonify({'error': 'No file provided'}), 400
         
         file = request.files['file']
-        bucket = os.getenv('SUPABASE_STORAGE_BUCKET', 'astrology')
         
-        # Upload to Supabase Storage
-        file_bytes = file.read()
-        file_path = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
         
-        response = supabase.storage.from_(bucket).upload(
-            file_path,
-            file_bytes,
-            file_options={'content-type': file.content_type}
-        )
+        # Save to local static folder as fallback
+        import os
+        from werkzeug.utils import secure_filename
         
-        # Get public URL
-        public_url = supabase.storage.from_(bucket).get_public_url(file_path)
+        filename = secure_filename(file.filename)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        unique_filename = f"{timestamp}_{filename}"
+        
+        # Create uploads directory if it doesn't exist
+        upload_folder = os.path.join('static', 'uploads')
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        file_path = os.path.join(upload_folder, unique_filename)
+        file.save(file_path)
+        
+        # Return URL relative to website root
+        public_url = f"/static/uploads/{unique_filename}"
+        
+        print(f"File uploaded successfully: {public_url}")
         
         return jsonify({
             'success': True,
@@ -626,6 +828,9 @@ def upload_file():
         })
         
     except Exception as e:
+        print(f"Upload error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 # Helper Functions
@@ -634,6 +839,7 @@ def send_booking_email(booking_data):
     try:
         email_address = os.getenv('EMAIL_ADDRESS')
         email_password = os.getenv('EMAIL_PASSWORD')
+        admin_email = os.getenv('ADMIN_EMAIL', 'omkargouda1204@gmail.com')
         
         if not email_address or not email_password:
             print("Email credentials not configured")
@@ -642,7 +848,7 @@ def send_booking_email(booking_data):
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f"New Booking: {booking_data.get('service', 'Service')}"
         msg['From'] = email_address
-        msg['To'] = email_address
+        msg['To'] = admin_email
         
         html = f"""
         <html>
@@ -688,15 +894,16 @@ def send_contact_email(contact_data):
     try:
         email_address = os.getenv('EMAIL_ADDRESS')
         email_password = os.getenv('EMAIL_PASSWORD')
+        admin_email = os.getenv('ADMIN_EMAIL', 'omkargouda1204@gmail.com')
         
         if not email_address or not email_password:
             print("Email credentials not configured")
             return False
         
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"New Contact Message: {contact_data.get('subject', 'No Subject')}"
+        msg['Subject'] = f"New Contact Message from {contact_data.get('name', 'Unknown')}"
         msg['From'] = email_address
-        msg['To'] = email_address
+        msg['To'] = admin_email
         
         html = f"""
         <html>
@@ -707,7 +914,6 @@ def send_contact_email(contact_data):
                     <p><strong>Name:</strong> {contact_data.get('name')}</p>
                     <p><strong>Phone:</strong> {contact_data.get('phone')}</p>
                     <p><strong>Email:</strong> {contact_data.get('email', 'N/A')}</p>
-                    <p><strong>Subject:</strong> {contact_data.get('subject', 'N/A')}</p>
                     <p><strong>Message:</strong></p>
                     <p style="background: white; padding: 15px; border-radius: 5px; white-space: pre-wrap;">{contact_data.get('message', 'N/A')}</p>
                     <p><strong>Received:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>

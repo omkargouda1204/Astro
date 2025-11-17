@@ -904,13 +904,12 @@
     </script>
 
 
-
+<script>
         // Simple Chatbot Implementation
         let isChatbotOpen = false;
         
         function createChatbot() {
-            const chatbotHTML = `
-                <div id="chatbot-widget" class="fixed bottom-6 right-6 z-50">
+            const chatbotHTML = ` <div id="chatbot-widget" class="fixed bottom-6 right-6 z-50">
                     <!-- Chatbot Button -->
                     <button id="chatbot-toggle" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-110">
                         <i class="fas fa-comments text-2xl"></i>
@@ -988,6 +987,7 @@
                         </div>
                     </div>
                 </div>
+               
             `;
             document.body.insertAdjacentHTML('beforeend', chatbotHTML);
             
@@ -1008,23 +1008,15 @@
             document.getElementById('chatbot-send').addEventListener('click', () => {
                 sendMessage();
                 lastActivityTime = Date.now();
-                reviewTimerSet = false;
             });
             document.getElementById('chatbot-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     sendMessage();
                     lastActivityTime = Date.now();
-                    reviewTimerSet = false;
                 }
             });
             
-            // Check for inactivity and send review request
-            setInterval(() => {
-                if (isChatbotOpen && !reviewTimerSet && Date.now() - lastActivityTime > 7000) {
-                    reviewTimerSet = true;
-                    addBotMessage('⭐ We hope you\'re enjoying our service! Would you like to leave us a review? Click the Review button above! 🌟');
-                }
-            }, 1000);
+            // Review message will be shown after booking completion, not on timer
         }
         
         function toggleChatbot() {
@@ -1099,21 +1091,30 @@
                     <form id="chatbot-booking-form" class="space-y-3">
                         <input type="text" id="booking-name" placeholder="Your Name *" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
                         <input type="tel" id="booking-phone" placeholder="Phone Number (10 digits) *" required pattern="[6-9][0-9]{9}" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
-                        <input type="date" id="booking-dob" placeholder="Date of Birth *" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
-                        <select id="booking-service" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
-                            <option value="">Select Service *</option>
-                            <option value="Kundali Analysis">Kundali Analysis</option>
-                            <option value="Tarot Reading">Tarot Reading</option>
-                            <option value="Career Guidance">Career Guidance</option>
-                            <option value="Love & Relationships">Love & Relationships</option>
-                            <option value="Financial Consultation">Financial Consultation</option>
-                            <option value="Vastu Consultation">Vastu Consultation</option>
-                            <option value="Gemstone Recommendation">Gemstone Recommendation</option>
-                            <option value="Muhurat Selection">Muhurat Selection</option>
-                        </select>
-                        <textarea id="booking-message" placeholder="Any specific questions? (Optional)" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" rows="2"></textarea>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #666; margin-bottom: 4px;">Date of Birth *</label>
+                            <input type="date" id="booking-dob" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" style="color: #333;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #666; margin-bottom: 4px;">Select Service *</label>
+                            <select id="booking-service" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" style="color: #333;">
+                                <option value="">Choose a service...</option>
+                                <option value="Kundali Analysis">🔮 Kundali Analysis</option>
+                                <option value="Tarot Reading">🎴 Tarot Reading</option>
+                                <option value="Career Guidance">💼 Career Guidance</option>
+                                <option value="Love & Relationships">💑 Love & Relationships</option>
+                                <option value="Financial Consultation">💰 Financial Consultation</option>
+                                <option value="Vastu Consultation">🏠 Vastu Consultation</option>
+                                <option value="Gemstone Recommendation">💎 Gemstone Recommendation</option>
+                                <option value="Muhurat Selection">📅 Muhurat Selection</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; color: #666; margin-bottom: 4px;">Specific Question (Optional)</label>
+                            <textarea id="booking-message" placeholder="Tell us about your concerns or questions..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" rows="3" style="color: #333;"></textarea>
+                        </div>
                         <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg font-bold hover:shadow-lg transition">
-                            Submit Booking
+                            📤 Submit Booking
                         </button>
                     </form>
                 </div>
@@ -1167,13 +1168,54 @@
                         message: document.getElementById('booking-message').value.trim()
                     };
                     
-                    // Hide the booking form
-                    const formContainer = form.closest('.booking-form-container');
-                    if (formContainer) {
-                        formContainer.style.display = 'none';
-                    }
+                    // Show loading message
+                    addBotMessage('⏳ <strong>Processing your booking...</strong>');
                     
-                    await sendMessage(bookingData);
+                    try {
+                        // Submit booking to API
+                        const response = await fetch('/api/bookings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(bookingData)
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (response.ok && result) {
+                            // Hide the booking form
+                            const formContainer = form.closest('.booking-form-container');
+                            if (formContainer) {
+                                formContainer.style.display = 'none';
+                            }
+                            
+                            // Show success message
+                            addBotMessage(`✅ <strong>Booking Confirmed!</strong><br><br>
+Thank you <strong>${name}</strong> for booking <strong>${service}</strong>!<br><br>
+📋 <strong>Booking Details:</strong><br>
+• Name: ${name}<br>
+• Phone: ${phone}<br>
+• Service: ${service}<br>
+• DOB: ${dob}<br>
+${bookingData.message ? '• Question: ' + bookingData.message + '<br>' : ''}
+<br>📱 We'll contact you at <strong>${phone}</strong> within 2 hours<br>
+<em>Booking ID: #${result.id}</em><br><br>
+🙏 <strong>What's next?</strong><br>
+• Check your phone for our call/WhatsApp<br>
+• Prepare your birth details (if needed)<br><br>
+<strong>⭐ Had a great experience before?</strong><br>
+<a href="https://maps.app.goo.gl/rPo3UXPy65DBbsVz8" target="_blank" style="background: linear-gradient(to right, #7C3AED, #EC4899); color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; display: inline-block; font-weight: bold; margin-top: 10px;">
+⭐ Leave us a Google Review!
+</a>`);
+                        } else {
+                            addBotMessage(`❌ <strong>Booking failed</strong><br><br>${result.error || 'Please try again or contact us directly.'}<br><br>
+<a href="https://wa.me/918431729319" target="_blank" style="color: #7C3AED; font-weight: bold;">
+💬 Contact us on WhatsApp instead
+</a>`);
+                        }
+                    } catch (error) {
+                        console.error('Booking error:', error);
+                        addBotMessage('❌ <strong>Booking failed. Please try again or contact us directly.</strong><br><br><a href="https://wa.me/918431729319" target="_blank" style="color: #7C3AED; font-weight: bold;">💬 WhatsApp Us</a>');
+                    }
                 });
             }, 100);
         }

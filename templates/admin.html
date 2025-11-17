@@ -342,12 +342,6 @@
                                     </label>
                                     <input type="url" id="twitter-url" class="admin-input" placeholder="https://twitter.com/yourpage">
                                 </div>
-                                <div class="form-group">
-                                    <label for="linkedin-url" class="form-label">
-                                        <i class="fab fa-linkedin text-blue-700 mr-2"></i>LinkedIn
-                                    </label>
-                                    <input type="url" id="linkedin-url" class="admin-input" placeholder="https://linkedin.com/company/yourcompany">
-                                </div>
                             </div>
                         </div>
                         
@@ -845,14 +839,44 @@
         async function loadBusinessInfo() {
             try {
                 const response = await fetch('/api/business-info');
+                if (!response.ok) {
+                    console.error('Failed to load business info');
+                    return;
+                }
                 const info = await response.json();
                 
-                if (info) {
-                    document.getElementById('business-name').value = info.business_name || '';
-                    document.getElementById('business-phone').value = info.phone || '';
-                    document.getElementById('business-email').value = info.email || '';
-                    document.getElementById('business-address').value = info.address || '';
-                    document.getElementById('business-whatsapp').value = info.whatsapp || '';
+                if (info && Object.keys(info).length > 0) {
+                    // Map database fields to form fields
+                    if (document.getElementById('business-address')) {
+                        document.getElementById('business-address').value = info.address || '';
+                    }
+                    if (document.getElementById('business-email')) {
+                        document.getElementById('business-email').value = info.email || '';
+                    }
+                    if (document.getElementById('business-phone')) {
+                        document.getElementById('business-phone').value = info.phone || '';
+                    }
+                    if (document.getElementById('business-website')) {
+                        document.getElementById('business-website').value = info.website || '';
+                    }
+                    if (document.getElementById('business-hours-weekday')) {
+                        document.getElementById('business-hours-weekday').value = info.hours_weekday || '';
+                    }
+                    if (document.getElementById('business-hours-sunday')) {
+                        document.getElementById('business-hours-sunday').value = info.hours_sunday || '';
+                    }
+                    if (document.getElementById('facebook-url')) {
+                        document.getElementById('facebook-url').value = info.facebook || '';
+                    }
+                    if (document.getElementById('instagram-url')) {
+                        document.getElementById('instagram-url').value = info.instagram || '';
+                    }
+                    if (document.getElementById('youtube-url')) {
+                        document.getElementById('youtube-url').value = info.youtube || '';
+                    }
+                    if (document.getElementById('twitter-url')) {
+                        document.getElementById('twitter-url').value = info.twitter || '';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading business info:', error);
@@ -877,84 +901,238 @@
                 const response = await fetch(`/api/gallery-slides/${id}`);
                 const slide = await response.json();
                 
+                // Show form
+                document.getElementById('gallery-image-form-container').classList.remove('hidden');
+                
                 // Populate form fields
-                document.getElementById('gallery-image-url').value = slide.image || '';
-                document.getElementById('gallery-title').value = slide.title || '';
-                document.getElementById('gallery-description').value = slide.description || '';
+                document.getElementById('gallery-image-id').value = id;
+                document.getElementById('gallery-image-title').value = slide.title || '';
+                document.getElementById('gallery-image-description').value = slide.description || '';
                 
                 // Change button to update mode
-                const submitBtn = document.querySelector('#gallery-form button[type="submit"]');
+                const submitBtn = document.querySelector('#gallery-image-form button[type="submit"]');
                 submitBtn.textContent = 'Update Image';
-                submitBtn.onclick = async (e) => {
-                    e.preventDefault();
-                    await updateGallerySlide(id);
-                };
+                
+                // Scroll to form
+                document.getElementById('gallery-image-form-container').scrollIntoView({ behavior: 'smooth' });
             } catch (error) {
                 console.error('Error loading gallery slide:', error);
                 alert('Error loading image data');
             }
         }
 
-        async function updateGallerySlide(id) {
+        // Handle gallery form submission
+        document.getElementById('gallery-image-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('gallery-image-id').value;
+            const title = document.getElementById('gallery-image-title').value;
+            const description = document.getElementById('gallery-image-description').value;
+            const fileInput = document.getElementById('gallery-image-file');
+            
+            let imageUrl = '';
+            
+            // Upload image if file selected
+            if (fileInput.files.length > 0) {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                
+                try {
+                    const uploadResponse = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const uploadData = await uploadResponse.json();
+                    imageUrl = uploadData.url;
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    alert('Error uploading image');
+                    return;
+                }
+            }
+            
             const data = {
-                image: document.getElementById('gallery-image-url').value,
-                title: document.getElementById('gallery-title').value,
-                description: document.getElementById('gallery-description').value
+                title: title,
+                description: description
             };
-
+            
+            if (imageUrl) {
+                data.image = imageUrl;
+            }
+            
             try {
-                await fetch(`/api/gallery-slides/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+                if (id) {
+                    // Update existing
+                    await fetch(`/api/gallery-slides/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    alert('Image updated successfully!');
+                } else {
+                    // Create new
+                    if (!imageUrl) {
+                        alert('Please select an image file');
+                        return;
+                    }
+                    data.image = imageUrl;
+                    await fetch('/api/gallery-slides', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    alert('Image added successfully!');
+                }
                 
                 // Reset form
-                document.getElementById('gallery-form').reset();
-                const submitBtn = document.querySelector('#gallery-form button[type="submit"]');
-                submitBtn.textContent = 'Add Image';
-                submitBtn.onclick = null;
+                document.getElementById('gallery-image-form').reset();
+                document.getElementById('gallery-image-id').value = '';
+                document.getElementById('gallery-image-form-container').classList.add('hidden');
+                const submitBtn = document.querySelector('#gallery-image-form button[type="submit"]');
+                submitBtn.textContent = 'Save Image';
                 
                 loadGallerySlides();
-                alert('Image updated successfully!');
+                loadDashboardData();
             } catch (error) {
-                console.error('Error updating gallery slide:', error);
-                alert('Error updating image');
+                console.error('Error saving gallery image:', error);
+                alert('Error saving image');
             }
-        }
+        });
+        
+        // Show gallery add form
+        document.getElementById('add-gallery-image-btn').addEventListener('click', () => {
+            document.getElementById('gallery-image-form').reset();
+            document.getElementById('gallery-image-id').value = '';
+            document.getElementById('gallery-image-form-container').classList.remove('hidden');
+            document.querySelector('#gallery-image-form button[type="submit"]').textContent = 'Save Image';
+            document.getElementById('gallery-image-form-container').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Cancel gallery edit
+        document.getElementById('cancel-gallery-image-edit').addEventListener('click', () => {
+            document.getElementById('gallery-image-form').reset();
+            document.getElementById('gallery-image-id').value = '';
+            document.getElementById('gallery-image-form-container').classList.add('hidden');
+        });
 
         async function editHeroSlide(id) {
             try {
                 const response = await fetch(`/api/hero-slides/${id}`);
                 const slide = await response.json();
                 
-                // Populate form fields
-                document.getElementById('hero-image-url').value = slide.image || '';
-                document.getElementById('hero-title').value = slide.title || '';
-                document.getElementById('hero-subtitle').value = slide.subtitle || '';
-                document.getElementById('hero-button-text').value = slide.button_text || '';
-                document.getElementById('hero-button-link').value = slide.button_link || '';
+                // Show form container
+                document.getElementById('hero-slide-form-container').classList.remove('hidden');
                 
-                // Change button to update mode
-                const submitBtn = document.querySelector('#hero-form button[type="submit"]');
-                submitBtn.textContent = 'Update Slide';
-                submitBtn.onclick = async (e) => {
-                    e.preventDefault();
-                    await updateHeroSlide(id);
-                };
+                // Populate form fields with correct IDs
+                document.getElementById('hero-slide-id').value = id;
+                document.getElementById('hero-slide-title').value = slide.title || '';
+                document.getElementById('hero-slide-description').value = slide.description || '';
+                
+                // Scroll to form
+                document.getElementById('hero-slide-form-container').scrollIntoView({ behavior: 'smooth' });
             } catch (error) {
                 console.error('Error loading hero slide:', error);
                 alert('Error loading slide data');
             }
         }
 
+        // Hero slide form submission handler
+        document.getElementById('hero-slide-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('hero-slide-id').value;
+            const title = document.getElementById('hero-slide-title').value;
+            const description = document.getElementById('hero-slide-description').value;
+            const fileInput = document.getElementById('hero-slide-image');
+            
+            try {
+                let imageUrl = '';
+                
+                // Upload image if selected
+                if (fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    
+                    const uploadResponse = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!uploadResponse.ok) {
+                        throw new Error('Failed to upload image');
+                    }
+                    
+                    const uploadData = await uploadResponse.json();
+                    imageUrl = uploadData.url;
+                }
+                
+                const data = {
+                    title: title,
+                    description: description
+                };
+                
+                // Only include image if a new one was uploaded
+                if (imageUrl) {
+                    data.image = imageUrl;
+                }
+                
+                if (id) {
+                    // Update existing slide
+                    await fetch(`/api/hero-slides/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    alert('Hero slide updated successfully!');
+                } else {
+                    // Create new slide
+                    if (!imageUrl) {
+                        alert('Please select an image for the new slide');
+                        return;
+                    }
+                    
+                    await fetch('/api/hero-slides', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    alert('Hero slide created successfully!');
+                }
+                
+                // Reset form and hide container
+                document.getElementById('hero-slide-form').reset();
+                document.getElementById('hero-slide-id').value = '';
+                document.getElementById('hero-slide-form-container').classList.add('hidden');
+                
+                // Reload slides
+                loadHeroSlides();
+            } catch (error) {
+                console.error('Error saving hero slide:', error);
+                alert('Error saving hero slide: ' + error.message);
+            }
+        });
+        
+        // Add hero slide button handler
+        document.getElementById('add-hero-slide-btn').addEventListener('click', () => {
+            document.getElementById('hero-slide-form').reset();
+            document.getElementById('hero-slide-id').value = '';
+            document.getElementById('hero-slide-form-container').classList.remove('hidden');
+            document.getElementById('hero-slide-form-container').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Cancel hero slide edit button handler
+        document.getElementById('cancel-hero-slide-edit').addEventListener('click', () => {
+            document.getElementById('hero-slide-form').reset();
+            document.getElementById('hero-slide-id').value = '';
+            document.getElementById('hero-slide-form-container').classList.add('hidden');
+        });
+        
         async function updateHeroSlide(id) {
+            // This function is no longer used - kept for backward compatibility
             const data = {
-                image: document.getElementById('hero-image-url').value,
-                title: document.getElementById('hero-title').value,
-                subtitle: document.getElementById('hero-subtitle').value,
-                button_text: document.getElementById('hero-button-text').value,
-                button_link: document.getElementById('hero-button-link').value
+                image: document.getElementById('hero-slide-image').value,
+                title: document.getElementById('hero-slide-title').value,
+                description: document.getElementById('hero-slide-description').value
             };
 
             try {
@@ -965,10 +1143,7 @@
                 });
                 
                 // Reset form
-                document.getElementById('hero-form').reset();
-                const submitBtn = document.querySelector('#hero-form button[type="submit"]');
-                submitBtn.textContent = 'Add Slide';
-                submitBtn.onclick = null;
+                document.getElementById('hero-slide-form').reset();
                 
                 loadHeroSlides();
                 alert('Slide updated successfully!');
@@ -994,6 +1169,52 @@
             document.getElementById('save-business-btn').classList.add('hidden');
             document.getElementById('cancel-business-btn').classList.add('hidden');
             loadBusinessInfo(); // Reload original data
+        });
+        
+        // Business info form submission handler
+        document.getElementById('business-info-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const businessData = {
+                address: document.getElementById('business-address').value,
+                email: document.getElementById('business-email').value,
+                phone: document.getElementById('business-phone').value,
+                website: document.getElementById('business-website').value || '',
+                hours_weekday: document.getElementById('business-hours-weekday').value,
+                hours_sunday: document.getElementById('business-hours-sunday').value,
+                facebook: document.getElementById('facebook-url').value || '',
+                instagram: document.getElementById('instagram-url').value || '',
+                youtube: document.getElementById('youtube-url').value || '',
+                twitter: document.getElementById('twitter-url').value || ''
+            };
+            
+            try {
+                const response = await fetch('/api/business-info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(businessData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save business information');
+                }
+                
+                alert('Business information saved successfully!');
+                
+                // Set form back to readonly mode
+                const inputs = document.querySelectorAll('#business-info-form input, #business-info-form textarea');
+                inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
+                document.getElementById('edit-business-btn').classList.remove('hidden');
+                document.getElementById('save-business-btn').classList.add('hidden');
+                document.getElementById('cancel-business-btn').classList.add('hidden');
+                
+                // Reload business info to show updated data
+                await loadBusinessInfo();
+                
+            } catch (error) {
+                console.error('Error saving business information:', error);
+                alert('Error saving business information: ' + error.message);
+            }
         });
         
         // Initialize business form as readonly
@@ -1024,6 +1245,54 @@
             // Reload original data
             loadChatbotConfig();
         }
+        
+        // Chatbot config form submission handler
+        document.getElementById('chatbot-config-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const chatbotData = {
+                google_maps_url: document.getElementById('chatbot-google-maps').value || '',
+                google_review_url: document.getElementById('chatbot-google-review').value || '',
+                services: document.getElementById('chatbot-services').value || '',
+                facebook: document.getElementById('chatbot-facebook').value || '',
+                instagram: document.getElementById('chatbot-instagram').value || '',
+                twitter: document.getElementById('chatbot-twitter').value || '',
+                youtube: document.getElementById('chatbot-youtube').value || '',
+                linkedin: document.getElementById('chatbot-linkedin').value || '',
+                hours_weekday: document.getElementById('chatbot-hours-weekday').value || '',
+                hours_sunday: document.getElementById('chatbot-hours-sunday').value || ''
+            };
+            
+            try {
+                const response = await fetch('/api/chatbot-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(chatbotData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save chatbot configuration');
+                }
+                
+                alert('Chatbot configuration saved successfully!');
+                
+                // Set form back to readonly mode
+                const inputs = document.querySelectorAll('#chatbot-config-form input, #chatbot-config-form textarea');
+                const editBtn = document.getElementById('edit-chatbot-btn');
+                const actionsDiv = document.getElementById('chatbot-form-actions');
+                
+                inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
+                editBtn.style.display = 'inline-block';
+                actionsDiv.style.display = 'none';
+                
+                // Reload chatbot config to show updated data
+                await loadChatbotConfig();
+                
+            } catch (error) {
+                console.error('Error saving chatbot configuration:', error);
+                alert('Error saving chatbot configuration: ' + error.message);
+            }
+        });
         
         // Initialize chatbot form as readonly
         function initializeChatbotForm() {
