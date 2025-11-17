@@ -359,15 +359,44 @@
                         </div>
                     </div>
 
-                    <!-- WhatsApp CTA -->
-                    <div class="bg-gradient-to-br from-green-500 to-green-600 p-8 rounded-2xl shadow-lg text-white">
-                        <i class="fab fa-whatsapp text-6xl mb-4"></i>
-                        <h3 class="font-heading text-2xl font-bold mb-3">Prefer WhatsApp?</h3>
-                        <p class="mb-6">Get instant responses to your queries. Chat with us directly on WhatsApp!</p>
-                        <a href="https://wa.me/918431729319?text=Hi%2C%20I%20want%20astrology%20consultation" target="_blank" 
-                            class="inline-block bg-white text-green-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition transform hover:scale-105">
-                            <i class="fab fa-whatsapp mr-2"></i> Start WhatsApp Chat
-                        </a>
+                    <!-- Contact Methods -->
+                    <div class="bg-white p-8 rounded-2xl shadow-lg">
+                        <h3 class="font-heading text-2xl font-bold mb-6">Contact Us Directly</h3>
+                        <div class="space-y-3">
+                            <!-- WhatsApp Button -->
+                            <a href="https://wa.me/918431729319?text=Hello!%20I%27m%20interested%20in%20astrology%20consultation.%20Can%20you%20please%20guide%20me%3F" target="_blank" 
+                                class="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-xl font-semibold hover:shadow-lg transition transform hover:scale-105">
+                                <i class="fab fa-whatsapp text-2xl"></i>
+                                <div class="text-left">
+                                    <div class="text-sm opacity-90">Chat on</div>
+                                    <div class="font-bold">WhatsApp</div>
+                                </div>
+                            </a>
+                            
+                            <!-- Call Button -->
+                            <a id="call-button" href="tel:+918431729319" 
+                                class="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-xl font-semibold hover:shadow-lg transition transform hover:scale-105">
+                                <i class="fas fa-phone-alt text-2xl"></i>
+                                <div class="text-left">
+                                    <div class="text-sm opacity-90">Call Us Now</div>
+                                    <div class="font-bold" id="display-phone">+91 843 172 9319</div>
+                                </div>
+                            </a>
+                            
+                            <!-- Email Button -->
+                            <a id="email-button" href="mailto:bhojanaxpress@gmail.com?subject=Astrology Consultation Inquiry&body=Hello,%0D%0A%0D%0AI am interested in your astrology services. Please provide more information.%0D%0A%0D%0AThank you!" 
+                                class="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-4 rounded-xl font-semibold hover:shadow-lg transition transform hover:scale-105">
+                                <i class="fas fa-envelope text-2xl"></i>
+                                <div class="text-left">
+                                    <div class="text-sm opacity-90">Email Us</div>
+                                    <div class="font-bold" id="display-email">Send Email</div>
+                                </div>
+                            </a>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-4 text-center">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            We typically respond within 2 hours during business hours
+                        </p>
                     </div>
 
                     <!-- Social Media -->
@@ -508,10 +537,21 @@
             }
             
             try {
-                // Submit contact form using SupabaseAPI
-                const result = await SupabaseAPI.submitLead(formData);
+                // Submit contact form using Flask API
+                const response = await fetch('/api/contact-messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: formData.name,
+                        phone: formData.phone,
+                        email: formData.email,
+                        subject: formData.topic,
+                        message: formData.message
+                    })
+                });
+                const result = await response.json();
                 
-                if (result.success) {
+                if (response.ok && result) {
                     messageDiv.className = 'mt-4 p-4 bg-green-100 text-green-700 rounded-lg';
                     messageDiv.innerHTML = `
                         <div class="flex items-center">
@@ -640,8 +680,73 @@
             }
         }
         
+        // Load business info from API
+        async function loadBusinessInfoFromAPI() {
+            try {
+                const response = await fetch('/api/business-info');
+                const info = await response.json();
+                
+                if (info) {
+                    // Update address
+                    const addressEl = document.getElementById('contact-address');
+                    if (addressEl && info.address) {
+                        addressEl.textContent = info.address;
+                    }
+                    
+                    // Update phone
+                    const phoneEl = document.getElementById('contact-phone');
+                    if (phoneEl && info.phone) {
+                        phoneEl.textContent = info.phone;
+                    }
+                    
+                    // Update email
+                    const emailEl = document.getElementById('contact-email');
+                    if (emailEl && info.email) {
+                        emailEl.textContent = info.email;
+                    }
+                    
+                    // Update working hours
+                    const weekdayEl = document.getElementById('contact-hours-weekday');
+                    if (weekdayEl) {
+                        weekdayEl.textContent = 'Mon - Sat: ' + (info.business_hours_weekday || '9:00 AM - 8:00 PM');
+                    }
+                    
+                    const sundayEl = document.getElementById('contact-hours-sunday');
+                    if (sundayEl) {
+                        sundayEl.textContent = 'Sunday: ' + (info.business_hours_sunday || '10:00 AM - 6:00 PM');
+                    }
+                    
+                    // Update contact buttons
+                    const whatsappNum = info.phone ? info.phone.replace(/\D/g, '') : '918431729319';
+                    const whatsappLinks = document.querySelectorAll('a[href^="https://wa.me"]');
+                    whatsappLinks.forEach(link => {
+                        link.href = `https://wa.me/${whatsappNum}?text=Hello!%20I%27m%20interested%20in%20astrology%20consultation.%20Can%20you%20please%20guide%20me%3F`;
+                    });
+                    
+                    // Update call button
+                    const callButton = document.getElementById('call-button');
+                    if (callButton && info.phone) {
+                        callButton.href = `tel:${info.phone}`;
+                        const displayPhone = document.getElementById('display-phone');
+                        if (displayPhone) displayPhone.textContent = info.phone;
+                    }
+                    
+                    // Update email button
+                    const emailButton = document.getElementById('email-button');
+                    if (emailButton && info.email) {
+                        emailButton.href = `mailto:${info.email}?subject=Astrology Consultation Inquiry&body=Hello,%0D%0A%0D%0AI am interested in your astrology services. Please provide more information.%0D%0A%0D%0AThank you!`;
+                        const displayEmail = document.getElementById('display-email');
+                        if (displayEmail) displayEmail.textContent = info.email;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading business info from API:', error);
+            }
+        }
+        
         // Load business info on page load
         loadBusinessInfo();
+        loadBusinessInfoFromAPI();
     </script>
     
 </body>

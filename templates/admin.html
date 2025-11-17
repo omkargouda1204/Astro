@@ -67,9 +67,6 @@
                     <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100" data-tab="business">
                         <i class="fas fa-building mr-2"></i>Business Info
                     </button>
-                    <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100" data-tab="testimonials">
-                        <i class="fas fa-star mr-2"></i>Testimonials
-                    </button>
                     <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100" data-tab="chatbot">
                         <i class="fas fa-robot mr-2"></i>Chatbot Config
                     </button>
@@ -366,28 +363,6 @@
                             </button>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <!-- Testimonials Section -->
-            <div id="testimonials-section" class="tab-content hidden">
-                <div class="bg-white rounded-2xl shadow-lg p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-gray-800">
-                            <i class="fas fa-star text-yellow-500 mr-2"></i>What Our Clients Say
-                        </h2>
-                        <button onclick="showAddTestimonialModal()" class="admin-btn admin-btn-primary">
-                            <i class="fas fa-plus mr-2"></i>Add Testimonial
-                        </button>
-                    </div>
-                    
-                    <div id="testimonials-list" class="space-y-4">
-                        <!-- Testimonials will be loaded here -->
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
-                            <p>Loading testimonials...</p>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -752,14 +727,26 @@
                 const data = await response.json();
                 const slides = Array.isArray(data) ? data : (data.slides || []);
                 
-                const container = document.getElementById('gallery-slides-list');
+                const container = document.getElementById('gallery-images-list');
+                if (!container) {
+                    console.error('Gallery container not found');
+                    return;
+                }
                 container.innerHTML = slides.map(slide => `
-                    <div class="bg-white rounded-xl p-4 shadow-lg">
-                        <img src="${slide.image}" alt="${slide.title}" class="w-full h-48 object-cover rounded-lg mb-3">
-                        <h4 class="font-semibold mb-3">${slide.title}</h4>
-                        <button onclick="deleteGallerySlide(${slide.id})" class="btn btn-danger w-full">
-                            <i class="fas fa-trash mr-2"></i>Delete
-                        </button>
+                    <div class="bg-white rounded-xl overflow-hidden shadow-lg">
+                        <img src="${slide.image}" alt="${slide.title}" class="w-full h-48 object-cover" onerror="this.src='/static/assets/images/placeholder.svg'">
+                        <div class="p-4">
+                            <h4 class="font-semibold mb-2">${slide.title}</h4>
+                            <p class="text-sm text-gray-600 mb-3">${slide.description || ''}</p>
+                            <div class="flex gap-2">
+                                <button onclick="editGallerySlide(${slide.id})" class="btn btn-secondary flex-1">
+                                    <i class="fas fa-edit mr-1"></i>Edit
+                                </button>
+                                <button onclick="deleteGallerySlide(${slide.id})" class="btn btn-danger flex-1">
+                                    <i class="fas fa-trash mr-1"></i>Delete
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `).join('');
             } catch (error) {
