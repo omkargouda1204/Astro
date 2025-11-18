@@ -4,15 +4,15 @@ Werkzeug==3.0.1
 gevent==24.2.1
 
 
-
 supabase==2.2.1
 gotrue==2.12.4
-postgrest==0.14.0
+postgrest==0.13.2
 httpx==0.24.1
 Flask==3.0.2
 gunicorn==21.2.0
 python-dotenv==1.0.1
 requests==2.31.0
+
 
 
 
