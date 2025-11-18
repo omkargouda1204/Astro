@@ -282,12 +282,20 @@ def create_booking():
         response = supabase.table('bookings').insert(data).execute()
         
         # Send email notification
+        email_sent = False
         if response.data:
-            send_booking_email(response.data[0])
+            email_sent = send_booking_email(response.data[0])
+            if not email_sent:
+                print("⚠️ Warning: Booking saved but email notification failed")
         
-        return jsonify(response.data[0]), 201
+        result = response.data[0] if response.data else {}
+        result['email_sent'] = email_sent
+        return jsonify(result), 201
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"❌ Booking error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e), 'message': 'Booking failed'}), 500
 
 @app.route('/api/bookings/<int:booking_id>', methods=['PUT'])
 def update_booking(booking_id):
@@ -334,7 +342,10 @@ def create_contact_message():
         email_sent = send_contact_email(data)
         print(f"Email sent: {email_sent}")
         
-        return jsonify(response.data[0]), 201
+        result = response.data[0] if response.data else {}
+        result['email_sent'] = email_sent
+        result['message'] = 'Message sent successfully!'
+        return jsonify(result), 201
     except Exception as e:
         print(f"Error in create_contact_message: {str(e)}")
         import traceback
