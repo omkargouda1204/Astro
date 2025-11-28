@@ -1267,6 +1267,276 @@ def send_contact_email(contact_data):
     
     return False
 
+# ========================================
+# NAVBAR SETTINGS API ENDPOINTS
+# ========================================
+
+@app.route('/api/navbar-settings', methods=['GET'])
+def get_navbar_settings():
+    try:
+        response = supabase.table('navbar_settings').select('*').limit(1).execute()
+        if response.data and len(response.data) > 0:
+            return jsonify(response.data[0])
+        return jsonify({'error': 'No navbar settings found'}), 404
+    except Exception as e:
+        print(f"Error fetching navbar settings: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/navbar-settings', methods=['PUT'])
+def update_navbar_settings():
+    try:
+        data = request.json
+        # Get the first settings record
+        existing = supabase.table('navbar_settings').select('id').limit(1).execute()
+        if existing.data and len(existing.data) > 0:
+            settings_id = existing.data[0]['id']
+            response = supabase.table('navbar_settings').update(data).eq('id', settings_id).execute()
+            return jsonify(response.data[0])
+        else:
+            # Create if doesn't exist
+            response = supabase.table('navbar_settings').insert(data).execute()
+            return jsonify(response.data[0]), 201
+    except Exception as e:
+        print(f"Error updating navbar settings: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+# ========================================
+# MENU ITEMS API ENDPOINTS
+# ========================================
+
+@app.route('/api/menu-items', methods=['GET'])
+def get_menu_items():
+    try:
+        response = supabase.table('menu_items')\
+            .select('*')\
+            .eq('active', True)\
+            .order('display_order')\
+            .execute()
+        return jsonify(response.data if response.data else [])
+    except Exception as e:
+        print(f"Error fetching menu items: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/menu-items', methods=['POST'])
+def create_menu_item():
+    try:
+        data = request.json
+        response = supabase.table('menu_items').insert(data).execute()
+        return jsonify(response.data[0]), 201
+    except Exception as e:
+        print(f"Error creating menu item: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/menu-items/<int:item_id>', methods=['PUT'])
+def update_menu_item(item_id):
+    try:
+        data = request.json
+        response = supabase.table('menu_items').update(data).eq('id', item_id).execute()
+        return jsonify(response.data[0])
+    except Exception as e:
+        print(f"Error updating menu item: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/menu-items/<int:item_id>', methods=['DELETE'])
+def delete_menu_item(item_id):
+    try:
+        supabase.table('menu_items').delete().eq('id', item_id).execute()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ========================================
+# ANNOUNCEMENT BAR API ENDPOINTS
+# ========================================
+
+@app.route('/api/announcements', methods=['GET'])
+def get_announcements():
+    try:
+        response = supabase.table('announcement_bar')\
+            .select('*')\
+            .eq('active', True)\
+            .order('display_order')\
+            .execute()
+        return jsonify(response.data if response.data else [])
+    except Exception as e:
+        print(f"Error fetching announcements: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/announcements', methods=['POST'])
+def create_announcement():
+    try:
+        data = request.json
+        response = supabase.table('announcement_bar').insert(data).execute()
+        return jsonify(response.data[0]), 201
+    except Exception as e:
+        print(f"Error creating announcement: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/announcements/<int:announcement_id>', methods=['PUT'])
+def update_announcement(announcement_id):
+    try:
+        data = request.json
+        response = supabase.table('announcement_bar').update(data).eq('id', announcement_id).execute()
+        return jsonify(response.data[0])
+    except Exception as e:
+        print(f"Error updating announcement: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/announcements/<int:announcement_id>', methods=['DELETE'])
+def delete_announcement(announcement_id):
+    try:
+        supabase.table('announcement_bar').delete().eq('id', announcement_id).execute()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ========================================
+# ASTROLOGICAL SERVICES API ENDPOINTS
+# ========================================
+
+@app.route('/api/astrological-services', methods=['GET'])
+def get_astrological_services():
+    try:
+        response = supabase.table('astrological_services')\
+            .select('*')\
+            .eq('active', True)\
+            .order('display_order')\
+            .execute()
+        return jsonify(response.data if response.data else [])
+    except Exception as e:
+        print(f"Error fetching astrological services: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/astrological-services', methods=['POST'])
+def create_astrological_service():
+    try:
+        data = request.json
+        response = supabase.table('astrological_services').insert(data).execute()
+        return jsonify(response.data[0]), 201
+    except Exception as e:
+        print(f"Error creating astrological service: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/astrological-services/<int:service_id>', methods=['PUT'])
+def update_astrological_service(service_id):
+    try:
+        data = request.json
+        response = supabase.table('astrological_services').update(data).eq('id', service_id).execute()
+        return jsonify(response.data[0])
+    except Exception as e:
+        print(f"Error updating astrological service: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/astrological-services/<int:service_id>', methods=['DELETE'])
+def delete_astrological_service(service_id):
+    try:
+        supabase.table('astrological_services').delete().eq('id', service_id).execute()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ========================================
+# POOJA SERVICES API ENDPOINTS
+# ========================================
+
+@app.route('/api/pooja-services', methods=['GET'])
+def get_pooja_services():
+    try:
+        response = supabase.table('pooja_services')\
+            .select('*')\
+            .eq('active', True)\
+            .order('display_order')\
+            .execute()
+        return jsonify(response.data if response.data else [])
+    except Exception as e:
+        print(f"Error fetching pooja services: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/pooja-services', methods=['POST'])
+def create_pooja_service():
+    try:
+        data = request.json
+        response = supabase.table('pooja_services').insert(data).execute()
+        return jsonify(response.data[0]), 201
+    except Exception as e:
+        print(f"Error creating pooja service: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/pooja-services/<int:service_id>', methods=['PUT'])
+def update_pooja_service(service_id):
+    try:
+        data = request.json
+        response = supabase.table('pooja_services').update(data).eq('id', service_id).execute()
+        return jsonify(response.data[0])
+    except Exception as e:
+        print(f"Error updating pooja service: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/pooja-services/<int:service_id>', methods=['DELETE'])
+def delete_pooja_service(service_id):
+    try:
+        supabase.table('pooja_services').delete().eq('id', service_id).execute()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ========================================
+# EXPERT SOLUTIONS API ENDPOINTS
+# ========================================
+
+@app.route('/api/expert-solutions', methods=['GET'])
+def get_expert_solutions():
+    try:
+        response = supabase.table('expert_solutions')\
+            .select('*')\
+            .eq('active', True)\
+            .order('display_order')\
+            .execute()
+        return jsonify(response.data if response.data else [])
+    except Exception as e:
+        print(f"Error fetching expert solutions: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/expert-solutions', methods=['POST'])
+def create_expert_solution():
+    try:
+        data = request.json
+        response = supabase.table('expert_solutions').insert(data).execute()
+        return jsonify(response.data[0]), 201
+    except Exception as e:
+        print(f"Error creating expert solution: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/expert-solutions/<int:solution_id>', methods=['PUT'])
+def update_expert_solution(solution_id):
+    try:
+        data = request.json
+        response = supabase.table('expert_solutions').update(data).eq('id', solution_id).execute()
+        return jsonify(response.data[0])
+    except Exception as e:
+        print(f"Error updating expert solution: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/expert-solutions/<int:solution_id>', methods=['DELETE'])
+def delete_expert_solution(solution_id):
+    try:
+        supabase.table('expert_solutions').delete().eq('id', solution_id).execute()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)

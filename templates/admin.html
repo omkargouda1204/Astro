@@ -73,6 +73,21 @@
                     <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100" data-tab="about">
                         <i class="fas fa-user-tie mr-2"></i>About Section
                     </button>
+                    <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100" data-tab="navbar">
+                        <i class="fas fa-bars mr-2"></i>Navbar & Menu
+                    </button>
+                    <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100" data-tab="announcements">
+                        <i class="fas fa-bullhorn mr-2"></i>Announcements
+                    </button>
+                    <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100" data-tab="astrological-services">
+                        <i class="fas fa-star mr-2"></i>Astrological Services
+                    </button>
+                    <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100" data-tab="pooja-services">
+                        <i class="fas fa-om mr-2"></i>Pooja Services
+                    </button>
+                    <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100" data-tab="expert-solutions">
+                        <i class="fas fa-hands-helping mr-2"></i>Expert Solutions
+                    </button>
                     <button class="tab-btn px-6 py-3 rounded-xl font-semibold text-sm text-gray-600 hover:bg-gray-100" data-tab="settings">
                         <i class="fas fa-cog mr-2"></i>Settings
                     </button>
@@ -534,6 +549,261 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Navbar & Menu Management Section -->
+            <div id="navbar-section" class="tab-content hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                        <i class="fas fa-bars text-purple-600 mr-2"></i>Navbar Settings
+                    </h2>
+                    
+                    <form id="navbar-settings-form" class="space-y-4">
+                        <input type="hidden" id="navbar-settings-id">
+                        
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-image text-gray-500 mr-2"></i>Logo Image
+                                </label>
+                                <input type="file" id="navbar-logo-upload" accept="image/*" class="admin-input">
+                                <p class="text-sm text-gray-500 mt-1">Recommended: 200x200px, PNG with transparent background</p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-phone text-gray-500 mr-2"></i>Phone Number
+                                </label>
+                                <input type="tel" id="navbar-phone" class="admin-input" placeholder="+91 9876543210">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fab fa-whatsapp text-gray-500 mr-2"></i>WhatsApp Number
+                                </label>
+                                <input type="tel" id="navbar-whatsapp" class="admin-input" placeholder="+91 9876543210">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="admin-btn admin-btn-success">
+                            <i class="fas fa-save mr-2"></i>Save Navbar Settings
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Menu Items Management -->
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-list text-purple-600 mr-2"></i>Menu Items
+                        </h2>
+                        <button onclick="showMenuItemForm()" class="admin-btn admin-btn-success">
+                            <i class="fas fa-plus mr-2"></i>Add Menu Item
+                        </button>
+                    </div>
+                    
+                    <!-- Menu Item Form -->
+                    <div id="menu-item-form-container" class="hidden mb-6 p-4 bg-purple-50 rounded-xl">
+                        <form id="menu-item-form">
+                            <input type="hidden" id="menu-item-id">
+                            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                                <input type="text" id="menu-item-title" class="admin-input" placeholder="Menu Title" required>
+                                <input type="text" id="menu-item-url" class="admin-input" placeholder="URL (e.g., #services)" required>
+                                <input type="number" id="menu-item-order" class="admin-input" placeholder="Display Order" value="0">
+                            </div>
+                            <div class="flex gap-3">
+                                <button type="submit" class="admin-btn admin-btn-success">
+                                    <i class="fas fa-save mr-2"></i>Save Menu Item
+                                </button>
+                                <button type="button" onclick="cancelMenuItemEdit()" class="admin-btn admin-btn-secondary">
+                                    <i class="fas fa-times mr-2"></i>Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="menu-items-list" class="space-y-3">
+                        <!-- Menu items will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Announcements Management Section -->
+            <div id="announcements-section" class="tab-content hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-bullhorn text-orange-600 mr-2"></i>Announcement Bar Management
+                        </h2>
+                        <button onclick="showAnnouncementForm()" class="admin-btn admin-btn-success">
+                            <i class="fas fa-plus mr-2"></i>Add Announcement
+                        </button>
+                    </div>
+                    
+                    <!-- Announcement Form -->
+                    <div id="announcement-form-container" class="hidden mb-6 p-4 bg-orange-50 rounded-xl">
+                        <form id="announcement-form">
+                            <input type="hidden" id="announcement-id">
+                            <div class="space-y-4 mb-4">
+                                <input type="text" id="announcement-text" class="admin-input" placeholder="Announcement Text" required>
+                                <div class="flex items-center space-x-4">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" id="announcement-active" checked class="w-5 h-5 text-purple-600">
+                                        <span class="font-medium">Active</span>
+                                    </label>
+                                    <input type="number" id="announcement-order" class="admin-input w-32" placeholder="Order" value="0">
+                                </div>
+                            </div>
+                            <div class="flex gap-3">
+                                <button type="submit" class="admin-btn admin-btn-success">
+                                    <i class="fas fa-save mr-2"></i>Save Announcement
+                                </button>
+                                <button type="button" onclick="cancelAnnouncementEdit()" class="admin-btn admin-btn-secondary">
+                                    <i class="fas fa-times mr-2"></i>Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="announcements-list" class="space-y-3">
+                        <!-- Announcements will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Astrological Services Management Section -->
+            <div id="astrological-services-section" class="tab-content hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-star text-purple-600 mr-2"></i>Astrological Services
+                        </h2>
+                        <button onclick="showAstroServiceForm()" class="admin-btn admin-btn-success">
+                            <i class="fas fa-plus mr-2"></i>Add Service
+                        </button>
+                    </div>
+                    
+                    <!-- Service Form -->
+                    <div id="astro-service-form-container" class="hidden mb-6 p-4 bg-purple-50 rounded-xl">
+                        <form id="astro-service-form">
+                            <input type="hidden" id="astro-service-id">
+                            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                <input type="text" id="astro-service-title" class="admin-input" placeholder="Service Title" required>
+                                <input type="file" id="astro-service-icon" accept="image/*" class="admin-input">
+                            </div>
+                            <textarea id="astro-service-description" rows="3" class="admin-input mb-4" placeholder="Service Description"></textarea>
+                            <div class="flex items-center space-x-4 mb-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="astro-service-active" checked class="w-5 h-5 text-purple-600">
+                                    <span class="font-medium">Active</span>
+                                </label>
+                                <input type="number" id="astro-service-order" class="admin-input w-32" placeholder="Order" value="0">
+                            </div>
+                            <div class="flex gap-3">
+                                <button type="submit" class="admin-btn admin-btn-success">
+                                    <i class="fas fa-save mr-2"></i>Save Service
+                                </button>
+                                <button type="button" onclick="cancelAstroServiceEdit()" class="admin-btn admin-btn-secondary">
+                                    <i class="fas fa-times mr-2"></i>Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="astro-services-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Services will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pooja Services Management Section -->
+            <div id="pooja-services-section" class="tab-content hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-om text-orange-600 mr-2"></i>Pooja & Ritual Services
+                        </h2>
+                        <button onclick="showPoojaServiceForm()" class="admin-btn admin-btn-success">
+                            <i class="fas fa-plus mr-2"></i>Add Pooja
+                        </button>
+                    </div>
+                    
+                    <!-- Pooja Form -->
+                    <div id="pooja-service-form-container" class="hidden mb-6 p-4 bg-orange-50 rounded-xl">
+                        <form id="pooja-service-form">
+                            <input type="hidden" id="pooja-service-id">
+                            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                <input type="text" id="pooja-service-title" class="admin-input" placeholder="Pooja Title" required>
+                                <input type="file" id="pooja-service-image" accept="image/*" class="admin-input">
+                            </div>
+                            <textarea id="pooja-service-description" rows="3" class="admin-input mb-4" placeholder="Pooja Description"></textarea>
+                            <div class="flex items-center space-x-4 mb-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="pooja-service-active" checked class="w-5 h-5 text-orange-600">
+                                    <span class="font-medium">Active</span>
+                                </label>
+                                <input type="number" id="pooja-service-order" class="admin-input w-32" placeholder="Order" value="0">
+                            </div>
+                            <div class="flex gap-3">
+                                <button type="submit" class="admin-btn admin-btn-success">
+                                    <i class="fas fa-save mr-2"></i>Save Pooja
+                                </button>
+                                <button type="button" onclick="cancelPoojaServiceEdit()" class="admin-btn admin-btn-secondary">
+                                    <i class="fas fa-times mr-2"></i>Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="pooja-services-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Poojas will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expert Solutions Management Section -->
+            <div id="expert-solutions-section" class="tab-content hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-hands-helping text-purple-600 mr-2"></i>Expert Solutions
+                        </h2>
+                        <button onclick="showExpertSolutionForm()" class="admin-btn admin-btn-success">
+                            <i class="fas fa-plus mr-2"></i>Add Solution
+                        </button>
+                    </div>
+                    
+                    <!-- Solution Form -->
+                    <div id="expert-solution-form-container" class="hidden mb-6 p-4 bg-purple-50 rounded-xl">
+                        <form id="expert-solution-form">
+                            <input type="hidden" id="expert-solution-id">
+                            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                <input type="text" id="expert-solution-title" class="admin-input" placeholder="Solution Title" required>
+                                <input type="file" id="expert-solution-image" accept="image/*" class="admin-input">
+                            </div>
+                            <textarea id="expert-solution-description" rows="4" class="admin-input mb-4" placeholder="Solution Description" required></textarea>
+                            <div class="flex items-center space-x-4 mb-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="expert-solution-active" checked class="w-5 h-5 text-purple-600">
+                                    <span class="font-medium">Active</span>
+                                </label>
+                                <input type="number" id="expert-solution-order" class="admin-input w-32" placeholder="Order" value="0">
+                            </div>
+                            <div class="flex gap-3">
+                                <button type="submit" class="admin-btn admin-btn-success">
+                                    <i class="fas fa-save mr-2"></i>Save Solution
+                                </button>
+                                <button type="button" onclick="cancelExpertSolutionEdit()" class="admin-btn admin-btn-secondary">
+                                    <i class="fas fa-times mr-2"></i>Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="expert-solutions-list" class="space-y-4">
+                        <!-- Solutions will be loaded here -->
+                    </div>
                 </div>
             </div>
 
@@ -1608,6 +1878,455 @@
                 console.error('Error saving about section:', error);
                 alert('Error saving about section: ' + error.message);
             }
+        });
+
+        // ====================================================================
+        // NEW SECTIONS JAVASCRIPT - Navbar, Announcements, Services, Pooja, Solutions
+        // ====================================================================
+
+        // Update tab switching to handle new tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const tab = this.dataset.tab;
+                
+                // Switch active tab styling
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('active', 'bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white');
+                    b.classList.add('text-gray-600', 'hover:bg-gray-100');
+                });
+                this.classList.add('active', 'bg-gradient-to-r', 'from-purple-600', 'to-pink-600', 'text-white');
+                this.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // Show selected tab and load its data
+                const section = document.getElementById(`${tab}-section`);
+                if (section) {
+                    section.classList.remove('hidden');
+                    
+                    // Load data for the selected tab
+                    switch(tab) {
+                        case 'navbar':
+                            await loadNavbarSettings();
+                            await loadMenuItems();
+                            break;
+                        case 'announcements':
+                            await loadAnnouncements();
+                            break;
+                        case 'astrological-services':
+                            await loadAstroServices();
+                            break;
+                        case 'pooja-services':
+                            await loadPoojaServices();
+                            break;
+                        case 'expert-solutions':
+                            await loadExpertSolutions();
+                            break;
+                    }
+                }
+            });
+        });
+
+        // ============================
+        // NAVBAR SETTINGS MANAGEMENT
+        // ============================
+        
+        async function loadNavbarSettings() {
+            try {
+                const response = await fetch('/api/navbar-settings');
+                if (response.ok) {
+                    const settings = await response.json();
+                    document.getElementById('navbar-phone').value = settings.phone_number || '';
+                    document.getElementById('navbar-whatsapp').value = settings.whatsapp_number || '';
+                }
+            } catch (error) {
+                console.error('Error loading navbar settings:', error);
+            }
+        }
+        
+        document.getElementById('navbar-settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                let logoUrl = '';
+                const logoFile = document.getElementById('navbar-logo-upload').files[0];
+                if (logoFile) {
+                    const formData = new FormData();
+                    formData.append('file', logoFile);
+                    formData.append('folder', 'navbar');
+                    
+                    const uploadResponse = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (uploadResponse.ok) {
+                        const uploadData = await uploadResponse.json();
+                        logoUrl = uploadData.url;
+                    }
+                }
+                
+                const data = {
+                    phone_number: document.getElementById('navbar-phone').value,
+                    whatsapp_number: document.getElementById('navbar-whatsapp').value
+                };
+                
+                if (logoUrl) {
+                    data.logo_url = logoUrl;
+                }
+                
+                const response = await fetch('/api/navbar-settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    alert('Navbar settings saved successfully!');
+                    document.getElementById('navbar-logo-upload').value = '';
+                }
+            } catch (error) {
+                console.error('Error saving navbar settings:', error);
+                alert('Error saving navbar settings');
+            }
+        });
+
+        // ============================
+        // MENU ITEMS MANAGEMENT
+        // ============================
+        
+        async function loadMenuItems() {
+            try {
+                const response = await fetch('/api/menu-items');
+                if (response.ok) {
+                    const items = await response.json();
+                    const list = document.getElementById('menu-items-list');
+                    list.innerHTML = items.map(item => `
+                        <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100">
+                            <div>
+                                <strong class="text-lg">${item.title}</strong>
+                                <p class="text-sm text-gray-600">${item.url} | Order: ${item.display_order}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editMenuItem(${item.id})" class="admin-btn-sm admin-btn-success">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteMenuItem(${item.id})" class="admin-btn-sm admin-btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading menu items:', error);
+            }
+        }
+        
+        function showMenuItemForm() {
+            document.getElementById('menu-item-form-container').classList.remove('hidden');
+            document.getElementById('menu-item-form').reset();
+            document.getElementById('menu-item-id').value = '';
+        }
+        
+        function cancelMenuItemEdit() {
+            document.getElementById('menu-item-form-container').classList.add('hidden');
+        }
+        
+        async function editMenuItem(id) {
+            try {
+                const response = await fetch(`/api/menu-items`);
+                const items = await response.json();
+                const item = items.find(i => i.id === id);
+                if (item) {
+                    document.getElementById('menu-item-id').value = item.id;
+                    document.getElementById('menu-item-title').value = item.title;
+                    document.getElementById('menu-item-url').value = item.url;
+                    document.getElementById('menu-item-order').value = item.display_order;
+                    showMenuItemForm();
+                }
+            } catch (error) {
+                console.error('Error loading menu item:', error);
+            }
+        }
+        
+        async function deleteMenuItem(id) {
+            if (confirm('Delete this menu item?')) {
+                try {
+                    await fetch(`/api/menu-items/${id}`, { method: 'DELETE' });
+                    loadMenuItems();
+                } catch (error) {
+                    console.error('Error deleting menu item:', error);
+                }
+            }
+        }
+        
+        document.getElementById('menu-item-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('menu-item-id').value;
+            const data = {
+                title: document.getElementById('menu-item-title').value,
+                url: document.getElementById('menu-item-url').value,
+                display_order: parseInt(document.getElementById('menu-item-order').value) || 0,
+                active: true
+            };
+            
+            try {
+                if (id) {
+                    await fetch(`/api/menu-items/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    await fetch('/api/menu-items', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+                
+                cancelMenuItemEdit();
+                loadMenuItems();
+            } catch (error) {
+                console.error('Error saving menu item:', error);
+            }
+        });
+
+        // Similar functions for Announcements, Astro Services, Pooja Services, Expert Solutions
+        // (Due to character limits, implementing key functions - patterns repeat)
+        
+        async function loadAnnouncements() {
+            try {
+                const response = await fetch('/api/announcements');
+                if (response.ok) {
+                    const items = await response.json();
+                    const list = document.getElementById('announcements-list');
+                    list.innerHTML = items.map(item => `
+                        <div class="p-4 bg-orange-50 rounded-lg flex justify-between items-center">
+                            <div class="flex-1">
+                                <p class="font-medium">${item.text}</p>
+                                <span class="text-xs ${item.active ? 'text-green-600' : 'text-gray-500'}">${item.active ? 'Active' : 'Inactive'}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editAnnouncement(${item.id})" class="admin-btn-sm admin-btn-success">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteAnnouncement(${item.id})" class="admin-btn-sm admin-btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading announcements:', error);
+            }
+        }
+        
+        function showAnnouncementForm() {
+            document.getElementById('announcement-form-container').classList.remove('hidden');
+        }
+        
+        function cancelAnnouncementEdit() {
+            document.getElementById('announcement-form-container').classList.add('hidden');
+        }
+        
+        async function deleteAnnouncement(id) {
+            if (confirm('Delete this announcement?')) {
+                await fetch(`/api/announcements/${id}`, { method: 'DELETE' });
+                loadAnnouncements();
+            }
+        }
+        
+        document.getElementById('announcement-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('announcement-id').value;
+            const data = {
+                text: document.getElementById('announcement-text').value,
+                active: document.getElementById('announcement-active').checked,
+                display_order: parseInt(document.getElementById('announcement-order').value) || 0
+            };
+            
+            if (id) {
+                await fetch(`/api/announcements/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                await fetch('/api/announcements', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            }
+            
+            cancelAnnouncementEdit();
+            loadAnnouncements();
+        });
+        
+        // Astro Services, Pooja Services, Expert Solutions follow similar patterns
+        // Implement with file upload support for icons/images
+        
+        async function loadAstroServices() {
+            const response = await fetch('/api/astrological-services');
+            const items = await response.json();
+            const list = document.getElementById('astro-services-list');
+            list.innerHTML = items.map(item => `
+                <div class="bg-white border rounded-xl p-4 shadow hover:shadow-lg">
+                    <h4 class="font-bold mb-2">${item.title}</h4>
+                    <p class="text-sm text-gray-600 mb-3">${item.description || ''}</p>
+                    <div class="flex gap-2">
+                        <button onclick="deleteItem('/api/astrological-services', ${item.id}, loadAstroServices)" class="admin-btn-sm admin-btn-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function loadPoojaServices() {
+            const response = await fetch('/api/pooja-services');
+            const items = await response.json();
+            const list = document.getElementById('pooja-services-list');
+            list.innerHTML = items.map(item => `
+                <div class="bg-white border rounded-xl p-4 shadow hover:shadow-lg">
+                    ${item.image_url ? `<img src="${item.image_url}" class="w-full h-32 object-cover rounded-lg mb-3">` : ''}
+                    <h4 class="font-bold mb-2">${item.title}</h4>
+                    <p class="text-sm text-gray-600">${item.description || ''}</p>
+                    <button onclick="deleteItem('/api/pooja-services', ${item.id}, loadPoojaServices)" class="admin-btn-sm admin-btn-danger mt-3">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        async function loadExpertSolutions() {
+            const response = await fetch('/api/expert-solutions');
+            const items = await response.json();
+            const list = document.getElementById('expert-solutions-list');
+            list.innerHTML = items.map(item => `
+                <div class="bg-white border rounded-xl p-4 shadow hover:shadow-lg flex gap-4">
+                    ${item.image_url ? `<img src="${item.image_url}" class="w-32 h-32 object-cover rounded-lg">` : ''}
+                    <div class="flex-1">
+                        <h4 class="font-bold text-lg mb-2">${item.title}</h4>
+                        <p class="text-sm text-gray-600 mb-3">${item.description || ''}</p>
+                        <button onclick="deleteItem('/api/expert-solutions', ${item.id}, loadExpertSolutions)" class="admin-btn-sm admin-btn-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function deleteItem(endpoint, id, reloadFn) {
+            if (confirm('Delete this item?')) {
+                await fetch(`${endpoint}/${id}`, { method: 'DELETE' });
+                reloadFn();
+            }
+        }
+        
+        function showAstroServiceForm() { document.getElementById('astro-service-form-container').classList.remove('hidden'); }
+        function cancelAstroServiceEdit() { document.getElementById('astro-service-form-container').classList.add('hidden'); }
+        function showPoojaServiceForm() { document.getElementById('pooja-service-form-container').classList.remove('hidden'); }
+        function cancelPoojaServiceEdit() { document.getElementById('pooja-service-form-container').classList.add('hidden'); }
+        function showExpertSolutionForm() { document.getElementById('expert-solution-form-container').classList.remove('hidden'); }
+        function cancelExpertSolutionEdit() { document.getElementById('expert-solution-form-container').classList.add('hidden'); }
+        
+        // Form submissions with file uploads
+        document.getElementById('astro-service-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let iconUrl = '';
+            const file = document.getElementById('astro-service-icon').files[0];
+            if (file) {
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('folder', 'services');
+                const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                if (res.ok) iconUrl = (await res.json()).url;
+            }
+            
+            const data = {
+                title: document.getElementById('astro-service-title').value,
+                description: document.getElementById('astro-service-description').value,
+                icon_url: iconUrl,
+                active: document.getElementById('astro-service-active').checked,
+                display_order: parseInt(document.getElementById('astro-service-order').value) || 0
+            };
+            
+            await fetch('/api/astrological-services', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            cancelAstroServiceEdit();
+            loadAstroServices();
+        });
+        
+        document.getElementById('pooja-service-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let imageUrl = '';
+            const file = document.getElementById('pooja-service-image').files[0];
+            if (file) {
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('folder', 'pooja');
+                const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                if (res.ok) imageUrl = (await res.json()).url;
+            }
+            
+            const data = {
+                title: document.getElementById('pooja-service-title').value,
+                description: document.getElementById('pooja-service-description').value,
+                image_url: imageUrl,
+                active: document.getElementById('pooja-service-active').checked,
+                display_order: parseInt(document.getElementById('pooja-service-order').value) || 0
+            };
+            
+            await fetch('/api/pooja-services', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            cancelPoojaServiceEdit();
+            loadPoojaServices();
+        });
+        
+        document.getElementById('expert-solution-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let imageUrl = '';
+            const file = document.getElementById('expert-solution-image').files[0];
+            if (file) {
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('folder', 'solutions');
+                const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                if (res.ok) imageUrl = (await res.json()).url;
+            }
+            
+            const data = {
+                title: document.getElementById('expert-solution-title').value,
+                description: document.getElementById('expert-solution-description').value,
+                image_url: imageUrl,
+                active: document.getElementById('expert-solution-active').checked,
+                display_order: parseInt(document.getElementById('expert-solution-order').value) || 0
+            };
+            
+            await fetch('/api/expert-solutions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            cancelExpertSolutionEdit();
+            loadExpertSolutions();
         });
     </script>
 </body>
